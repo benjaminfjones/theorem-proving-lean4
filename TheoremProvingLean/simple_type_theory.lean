@@ -111,6 +111,7 @@ def foo := let a := Nat; fun x : a => x + 2
 /- def bar := (fun a => fun x : a => x + 2) Nat -/
 
 /- Sections and variables -/
+namespace SimpleTypeTheoryCompose
 section useful
   variable (α β γ : Type)
   variable (g : β → γ) (f : α → β) (h : α → α)
@@ -124,6 +125,7 @@ section useful
   /- def compose : (α β γ : Type) → (β → γ) → (α → β) → α → γ :=
   fun α β γ g f x => g (f x) -/
 end useful
+end SimpleTypeTheoryCompose
 
 /- lambda syntax -/
 section foo

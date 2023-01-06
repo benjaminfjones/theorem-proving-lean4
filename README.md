@@ -2,6 +2,25 @@
 
 Notes from [Theorem Proving in Lean 4](https://leanprover.github.io/theorem_proving_in_lean4/)
 
+## Prove, Type Check, and Build
+
+```
+$ lake build
+Building TheoremProvingLean
+Building TheoremProvingLean.and_commutative
+Building TheoremProvingLean.implicit_args
+Building TheoremProvingLean.propositions_as_types
+Building TheoremProvingLean.simple_type_theory
+Compiling TheoremProvingLean
+Compiling TheoremProvingLean.and_commutative
+Compiling TheoremProvingLean.propositions_as_types
+Compiling TheoremProvingLean.implicit_args
+Compiling TheoremProvingLean.simple_type_theory
+Building Main
+Compiling Main
+Linking theorem-proving-lean
+```
+
 ## Setup
 
 ### Lean toolchain
