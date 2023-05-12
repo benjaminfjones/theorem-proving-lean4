@@ -13,6 +13,14 @@ example (hpq : p ∧ q) : q ∧ p :=
 example (hpq : p ∧ q) : q ∧ p :=
   ⟨hpq.right, hpq.left⟩
 
+-- Or introduction and elimination
+--
+-- Introduction: given a proof of `a` and any Prop `b`, you get a proof
+-- of `a ∨ b`
+#check Or.intro_left  -- {a : Prop} (b: Prop) (h : a) : a ∨ b
+-- Elimination: given a proof of `a ∨ b` and a way to prove `c` from both
+-- `a` and `b` individually, you get a proof of `c`.
+#check Or.elim        -- {a b c : Prop} (h : a ∨ b) (left : a → c) (right : b → c) : c
 theorem or_commutative : p \/ q -> q \/ p :=
   fun hypq : p ∨ q =>
   have right : p → q ∨ p := Or.intro_right q
