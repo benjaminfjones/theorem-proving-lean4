@@ -132,8 +132,11 @@ section useful
   def doThrice := h (h (h x))
 
   #print compose
-  /- def SimpleTypeTheory.compose : (α β γ : Type) → (β → γ) → (α → β) → α → γ :=
-  fun α β γ g f x => g (f x) -/
+  /-
+  def SimpleTypeTheory.compose :
+     (α β γ : Type) → (β → γ) → (α → β) → α → γ :=
+     fun α β γ g f x => g (f x)
+  -/
 end useful
 end SimpleTypeTheoryCompose
 
@@ -142,6 +145,6 @@ section foo
   variable (y : Type)
   def F2 := fun x : y => x
   def F3 := fun (x : y) => x
-  def F4 := fun (_x1 x2 : y) => x2
+  def F4 := fun (_x1 x2 : y) => x2  -- w/o _ there is a linter warning
   def F5 := fun (_x1 : y) (x2 : y) => x2
 end foo
