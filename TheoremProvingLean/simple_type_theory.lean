@@ -1,11 +1,15 @@
--- try it
+--
+-- Chapter 2: Dependent Type Theory
+--
+
 /- Define some constants. -/
 
 def m : Nat := 1       -- m is a natural number
 def n : Nat := 0
 def b1 : Bool := true  -- b1 is a Boolean
 def b2 : Bool := false
-def l : Nat := 14  -- -1 ==> failed to synthesize instance `Neg Nat`
+def l : Nat := 14
+-- def k : Nat := -1  -- failed to synthesize instance `Neg Nat`
 def b3 := b1 && b2  -- Bool
 def p1 := b1 /\ b2  -- Prop
 def p2 := b1 \/ b2   -- Prop
@@ -20,6 +24,8 @@ def p2 := b1 \/ b2   -- Prop
 #check b1 && b2     -- "&&" is the Boolean and
 #check b1 || b2     -- Boolean or
 #check true         -- Boolean "true"
+#check Nat          -- Nat : Type
+#check Bool
 
 /- Evaluate -/
 
@@ -34,6 +40,7 @@ def p2 := b1 \/ b2   -- Prop
 #check Bool → Bool
 
 #check Nat × Nat      -- type the product as "\times"
+-- #check (1, 0) ∈ Nat × Nat  -- Failed to synthesize Membership (x, y) Type
 #check Prod Nat Nat   -- alternative notation
 
 #check Nat → Nat → Nat
@@ -90,6 +97,7 @@ def G : Type → Type → Type := Prod
 #check G α Nat  -- Type
 
 #check Type     -- Type 1
+#check Type 0   -- Type 1
 #check Type 1   -- Type 2
 #check Type 2   -- Type 3
 #check Type 3   -- Type 4
@@ -101,10 +109,12 @@ universe u
 def H (γ : Type u) : Type u := Prod γ γ
 def J (γ : Type 1) : Type 1 := List γ
 #check H
+#check H Nat  -- Type
 
 #check fun (α β γ : Type) (g : β → γ) (f : α → β) (x : α) => g (f x)
 
 def foo := let a := Nat; fun x : a => x + 2
+
 /- body of `bar` does not make sense out of context of the `Nat` type, since
    it is defined in terms of adding 2 to an element of a. The type parameter
    `a` would beed to be constrained by a typeclass -/
@@ -122,7 +132,7 @@ section useful
   def doThrice := h (h (h x))
 
   #print compose
-  /- def compose : (α β γ : Type) → (β → γ) → (α → β) → α → γ :=
+  /- def SimpleTypeTheory.compose : (α β γ : Type) → (β → γ) → (α → β) → α → γ :=
   fun α β γ g f x => g (f x) -/
 end useful
 end SimpleTypeTheoryCompose
