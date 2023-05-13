@@ -28,6 +28,11 @@ end unsound
 #check unsound  -- unsoundness escapes the section!
 -/
 
+/-
+Composition in dependent type theory corresponds to:
+"If q implies r and p implies q, then p implies r"
+in propositional logic.
+-/
 variable (p q r s : Prop)
 theorem compose (h₁ : q → r) (h₂ : p → q) (hp : p) : r :=
   h₁ (h₂ hp)
@@ -35,21 +40,24 @@ theorem compose (h₁ : q → r) (h₂ : p → q) (hp : p) : r :=
 theorem compose_alt (h₁ : q → r) (h₂ : p → q) : p → r :=
   fun hp : p =>
   show r from h₁ (h₂ hp)
+#check compose_alt
 
 -- p → q and ¬ q implies ¬ p
 example (hpq: p → q) (hnq: ¬ q) : ¬ p :=
   fun hp : p => show False from hnq (hpq hp)
 
--- ex falso
+-- ex falso: p → ¬ p → q
+-- or: p → (p → False) → q
 example (hp : p) (hnp : ¬ p) : q :=
   show q from False.elim (hnp hp)
 
 example (hp : p) (hnp : ¬ p) : q := absurd hp hnp
 #check absurd  -- absurd.{v} {a : Prop} {b : Sort v} (h₁ : a) (h₂ : ¬a) : b
 
-
 -- canonical proof of True
 example (_t : True) := True.intro
+#check True   -- constant of type Prop
+#check False  -- constant of type Prop
 
 -- logical equivalence
 
@@ -73,6 +81,13 @@ theorem and_swap_alt : p ∧ q ↔ q ∧ p :=
 
 example (h : p ∧ q) : q ∧ p := (and_swap p q).mp h
 #check Iff.mp  -- Iff.mp {a b : Prop} (self : a ↔ b) (a✝ : a) : b
+
+-- By Curry-Howard, `and_swap` corresponds to `prod_swap` that swaps
+-- the elements of a pair. (_, _) is introduction, and _.i is elimination
+def prod_swap {α β : Type} (t : α × β) : (β × α) :=
+  (t.2, t.1)
+#check prod_swap (1, 2)
+#eval prod_swap (1, 2)
 
 /-
  - Exercises: https://leanprover.github.io/theorem_proving_in_lean4/propositions_and_proofs.html
@@ -108,7 +123,24 @@ example : (p ∧ q) ∧ r ↔ p ∧ (q ∧ r) :=
       have hp : p := hpqr.left
       have hqr : q ∧ r := hpqr.right
       ⟨⟨hp, hqr.left⟩, hqr.right⟩)
-example : (p ∨ q) ∨ r ↔ p ∨ (q ∨ r) := sorry
+example : (p ∨ q) ∨ r ↔ p ∨ (q ∨ r) :=
+  Iff.intro
+    (fun hpqr =>
+      Or.elim hpqr
+        (fun hpq => Or.elim hpq
+          (fun hp => Or.inl hp)
+          (fun hq => Or.inr (Or.inl hq))
+        )
+        (fun hr => Or.inr (Or.inr hr))
+    )
+    (fun hpqr =>
+      Or.elim hpqr
+        (fun hp => Or.inl (Or.inl hp))
+        (fun hqr => Or.elim hqr
+          (fun hq => Or.inl (Or.inr hq))
+          (fun hr => Or.inr hr)
+        )
+    )
 
 -- distributivity
 example : p ∧ (q ∨ r) ↔ (p ∧ q) ∨ (p ∧ r) := sorry
@@ -155,5 +187,25 @@ example : (¬p ∨ q) → (p → q) := sorry
 example : p ∨ False ↔ p := sorry
 example : p ∧ False ↔ False := sorry
 example : (p → q) → (¬q → ¬p) := sorry
+
+-- Exercise: prove double negation elimination from excluded middle
+section classical
+open Classical
+#check em
+theorem dne {p : Prop} (h : ¬¬p) : p :=
+  Or.elim (em p)
+    (fun hp : p => hp)
+    (fun hnp : ¬p => absurd hnp h)
+end classical
+
+-- Exercise: prove from excluded middle double negation elimination
+section alt_classical
+axiom assumed_dne {p : Prop} (h : ¬¬p) : p
+variable (q : Prop)
+#check @assumed_dne q
+theorem em {p : Prop} : p ∨ ¬ p :=
+  have (hnnp : ¬¬p) := sorry  -- something from nothing?
+  Or.intro_left (¬p) (assumed_dne hnnp)
+end alt_classical
 
 end exercises
