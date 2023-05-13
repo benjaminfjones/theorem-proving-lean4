@@ -14,10 +14,11 @@ theorem t1_alt : p → q → p :=
 theorem t1_alt2 (hp : p) (_hq : q) : p := hp
 #print t1_alt2
 
+section assume_p
 axiom hp : p
-
 /- Apply theorem t1 -/
 theorem t2 : q → p := t1 hp
+end assume_p
 
 /-
 section unsound
@@ -180,7 +181,6 @@ example : (p → ¬q) ↔ ¬p ∨ ¬q :=
 example : ((p ∨ q) → r) ↔ (p → r) ∧ (q → r) := sorry
 
 example : ¬p ∨ ¬q → ¬(p ∧ q) := sorry
-example : ¬(p ∧ ¬p) := sorry
 example : p ∧ ¬q → ¬(p → q) := sorry
 example : ¬p → (p → q) := sorry
 example : (¬p ∨ q) → (p → q) := sorry
@@ -198,14 +198,28 @@ theorem dne {p : Prop} (h : ¬¬p) : p :=
     (fun hnp : ¬p => absurd hnp h)
 end classical
 
--- Exercise: prove from excluded middle double negation elimination
+-- Exercise: constructively prove excluded middle, assuming
+-- double negation elimination
 section alt_classical
-axiom assumed_dne {p : Prop} (h : ¬¬p) : p
-variable (q : Prop)
-#check @assumed_dne q
-theorem em {p : Prop} : p ∨ ¬ p :=
-  have (hnnp : ¬¬p) := sorry  -- something from nothing?
-  Or.intro_left (¬p) (assumed_dne hnnp)
+  variable (p q : Prop)
+  axiom assumed_dne (h : ¬¬p) : p
+  #check @assumed_dne q
+
+  -- an absurdity from nothing
+  theorem not_both : ¬(p ∧ ¬p) :=
+    fun hpnp => absurd hpnp.left hpnp.right
+
+  -- use DeMorgan + absurdity
+  theorem neither_nor : ¬p ∨ ¬¬p :=
+     have hpp : ¬(p ∧ ¬p) := @not_both p
+     show ¬p ∨ ¬¬p from ((@de_morgan_2 p (¬p)).mp hpp)
+
+  -- use assumed_dne and previous theorems to get `em`
+  theorem em {p : Prop} : p ∨ ¬ p :=
+    have (hnn : ¬p ∨ ¬¬p) := neither_nor p
+    Or.elim hnn
+      (fun hnp => Or.inr hnp)
+      (fun hnnp => Or.inl (assumed_dne p hnnp))
 end alt_classical
 
 end exercises
