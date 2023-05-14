@@ -144,8 +144,16 @@ example : (p ∨ q) ∨ r ↔ p ∨ (q ∨ r) :=
     )
 
 -- distributivity
-example : p ∧ (q ∨ r) ↔ (p ∧ q) ∨ (p ∧ r) := sorry
-example : p ∨ (q ∧ r) ↔ (p ∨ q) ∧ (p ∨ r) := sorry
+-- example : p ∧ (q ∨ r) ↔ (p ∧ q) ∨ (p ∧ r) := sorry
+-- example : p ∨ (q ∧ r) ↔ (p ∨ q) ∧ (p ∨ r) := sorry
+
+-- Some useful validities
+theorem pq_imply_r : (p → (q → r)) ↔ (p ∧ q → r) := sorry
+#check @pq_imply_r
+theorem pq_imply_false : (p → ¬q) ↔ ¬(p ∧ q) := @pq_imply_r p q False
+#check pq_imply_false
+#check Iff.mp
+#check Iff.mp (@pq_imply_false p q)
 
 -- De Morgan's Law
 theorem de_morgan_1 : ¬(p ∨ q) ↔ ¬p ∧ ¬q :=
@@ -157,15 +165,32 @@ theorem de_morgan_1 : ¬(p ∨ q) ↔ ¬p ∧ ¬q :=
     (fun hnpnq : ¬p ∧ ¬q =>
       -- use partially applied And.left/And.right
       fun hpoq : p ∨ q => Or.elim hpoq hnpnq.left hnpnq.right)
-theorem de_morgan_2 : ¬(p ∧ q) ↔ (¬p ∨ ¬q) := sorry
 
--- other properties
-theorem pq_imply_r : (p → (q → r)) ↔ (p ∧ q → r) := sorry
-#check @pq_imply_r
-theorem pq_imply_false : (p → ¬q) ↔ ¬(p ∧ q) := @pq_imply_r p q False
-#check pq_imply_false
-#check Iff.mp
-#check Iff.mp (@pq_imply_false p q)
+section de_morgan_not_and
+  open Classical
+  -- Note: → requires classical reasoning!
+  --       ← does not
+  theorem de_morgan_2 : ¬(p ∧ q) ↔ (¬p ∨ ¬q) :=
+    Iff.intro
+      (fun hnpaq : ¬(p ∧ q) =>
+        have hpinq : p → ¬q  := (pq_imply_false _ _).mpr hnpaq
+        byCases
+          (fun h : p => Or.inr (hpinq h))
+          (fun h : ¬p => Or.inl h))
+      (fun hnpnq : ¬p ∨ ¬q =>
+        fun hpq : p ∧ q =>
+          Or.elim hnpnq
+            (fun hnp : ¬p => absurd hpq.left hnp)
+            (fun hnq : ¬q => absurd hpq.right hnq))
+end de_morgan_not_and
+
+theorem de_morgan_2_rhs : ¬p ∨ ¬q → ¬(p ∧ q) :=
+  fun hnpnq : ¬p ∨ ¬q =>
+    fun hpq : p ∧ q =>
+      Or.elim hnpnq
+        (fun hnp : ¬p => absurd hpq.left hnp)
+        (fun hnq : ¬q => absurd hpq.right hnq)
+
 -- use pq_imply_false and De Morgan to prove this alternate tautology
 example : (p → ¬q) ↔ ¬p ∨ ¬q :=
   Iff.intro
@@ -177,16 +202,14 @@ example : (p → ¬q) ↔ ¬p ∨ ¬q :=
       fun hp : p =>
       fun hq : q => hnpaq ⟨hp, hq⟩)
 
-
-example : ((p ∨ q) → r) ↔ (p → r) ∧ (q → r) := sorry
-
-example : ¬p ∨ ¬q → ¬(p ∧ q) := sorry
-example : p ∧ ¬q → ¬(p → q) := sorry
-example : ¬p → (p → q) := sorry
-example : (¬p ∨ q) → (p → q) := sorry
-example : p ∨ False ↔ p := sorry
-example : p ∧ False ↔ False := sorry
-example : (p → q) → (¬q → ¬p) := sorry
+-- TODO:
+-- example : ((p ∨ q) → r) ↔ (p → r) ∧ (q → r) := sorry
+-- example : p ∧ ¬q → ¬(p → q) := sorry
+-- example : ¬p → (p → q) := sorry
+-- example : (¬p ∨ q) → (p → q) := sorry
+-- example : p ∨ False ↔ p := sorry
+-- example : p ∧ False ↔ False := sorry
+-- example : (p → q) → (¬q → ¬p) := sorry
 
 -- Exercise: prove double negation elimination from excluded middle
 section classical
@@ -209,10 +232,16 @@ section alt_classical
   theorem not_both : ¬(p ∧ ¬p) :=
     fun hpnp => absurd hpnp.left hpnp.right
 
+  theorem de_morgan_2_self_lhs {r : Prop} : ¬(r ∧ ¬r) → (¬r ∨ ¬¬r) := sorry
+  #check @de_morgan_2_self_lhs (¬p)
+
   -- use DeMorgan + absurdity
+  -- TODO: de_morgan_2 requires classical reasoning, making this proof of
+  -- `em` circular! Try using specialization de_morgan_2_self, proved with
+  -- dne
   theorem neither_nor : ¬p ∨ ¬¬p :=
      have hpp : ¬(p ∧ ¬p) := @not_both p
-     show ¬p ∨ ¬¬p from ((@de_morgan_2 p (¬p)).mp hpp)
+     show ¬p ∨ ¬¬p from (@de_morgan_2_self_lhs _ hpp)
 
   -- use assumed_dne and previous theorems to get `em`
   theorem em {p : Prop} : p ∨ ¬ p :=
