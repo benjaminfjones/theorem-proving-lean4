@@ -38,6 +38,18 @@ section universal_exercises_1
           ⟨rhs.left x, rhs.right x⟩
       )
 
-  -- example : (∀ x, p x → q x) → (∀ x, p x) → (∀ x, q x) := sorry
-  -- example : (∀ x, p x) ∨ (∀ x, q x) → ∀ x, p x ∨ q x := sorry
+  example : (∀ x, p x → q x) → (∀ x, p x) → (∀ x, q x) :=
+    fun (hpiq : ∀ x, p x → q x) (hfap : ∀ x, p x) =>
+    show (∀ x, q x) from
+      fun x =>
+        have (f : p x → q x) := hpiq x 
+        have (hp : p x) := hfap x
+        show q x from f hp
+
+  example : (∀ x, p x) ∨ (∀ x, q x) → ∀ x, p x ∨ q x :=
+    fun hfapofaq =>
+      fun x =>
+        Or.elim hfapofaq
+          (fun hfap => Or.inl (hfap x))
+          (fun hfaq => Or.inr (hfaq x))
 end universal_exercises_1
