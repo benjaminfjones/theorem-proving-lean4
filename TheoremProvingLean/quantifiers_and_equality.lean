@@ -46,7 +46,7 @@ section universal_exercises_1
     fun (hpiq : ∀ x, p x → q x) (hfap : ∀ x, p x) =>
     show (∀ x, q x) from
       fun x =>
-        have (f : p x → q x) := hpiq x 
+        have (f : p x → q x) := hpiq x
         have (hp : p x) := hfap x
         show q x from f hp
 
@@ -72,13 +72,65 @@ section universal_exercises_2
         (fun hr : r =>
           show (∀ _ : α, r) from fun _ => hr)
 
+  open Classical  -- why do I feel guilty opening Classical?
   example : (∀ x, p x ∨ r) ↔ (∀ x, p x) ∨ r :=
     Iff.intro
-      (fun h : (∀ x, p x ∨ r) => sorry)
-      sorry
+      (fun h : (∀ x, p x ∨ r) =>
+        byCases  -- Proof by cases over `r`
+          (fun hr : r => Or.inr hr)
+          (fun hnr : ¬r =>
+            have hfp : (∀ x, p x) :=
+              fun x =>
+                Or.elim (h x)
+                  (fun hpx : p x => hpx)
+                  (fun hr : r => absurd hr hnr)
+            Or.inl hfp)
+      )
+      (fun h : (∀ x, p x) ∨ r =>
+        byCases  -- Proof by cases over `r`
+          (fun hr : r => fun x => Or.inr hr)
+          (fun hnr : ¬r =>
+            fun x =>
+              have hp : p x :=
+                Or.elim h
+                  (fun hfp => hfp x)
+                  (fun hr => absurd hr hnr)
+              show p x ∨ r from Or.inl hp)
+      )
 
-  example : (∀ x, r → p x) ↔ (r → ∀ x, p x) := sorry
+  example : (∀ x, r → p x) ↔ (r → ∀ x, p x) :=
+    Iff.intro
+      -- proof by function application, both ways
+      (fun hfxrp hr x => (hfxrp x) hr)
+      (fun hrfxp x hr => (hrfxp hr) x)
 end universal_exercises_2
+
+section universal_exercises_3
+  variable (men : Type) (barber : men)
+  variable (shaves : men → men → Prop)
+
+  -- example (h : ∀ x : men, shaves barber x ↔ ¬ shaves x x) : False := sorry
+
+end universal_exercises_3
+
+section universal_exercises_4
+  -- def even (n : Nat) : Prop := sorry
+
+  -- def prime (n : Nat) : Prop := sorry
+
+  -- def infinitely_many_primes : Prop := sorry
+
+  -- def Fermat_prime (n : Nat) : Prop := sorry
+
+  -- def infinitely_many_Fermat_primes : Prop := sorry
+
+  -- def goldbach_conjecture : Prop := sorry
+
+  -- def Goldbach's_weak_conjecture : Prop := sorry
+
+  -- def Fermat's_last_theorem : Prop := sorry
+section universal_exercises_4
+
 
 
 --
@@ -114,7 +166,7 @@ end manual_eq_proofs
 --
 -- Note: motive : α → Prop provides the context in which the substitution is to
 -- occur. Inferring the motive requires higher-order unification, in general.
-#check Eq.subst  
+#check Eq.subst
 
 section see_the_motive
   variable (α : Type) (a b c d : α)
@@ -162,9 +214,9 @@ section calc_proofs
       _ = c + 1 := h2
       _ = d + 1 := by rw [h3]
       _ = e := by rw [Nat.add_comm, h4]
-      
+
   theorem T3 : a = e := by simp [h1, h2, h3, h4, Nat.add_comm]
-  
+
   example (x y : Nat) : (x + y) * (x + y) = x * x + y * x + x * y + y * y :=
   calc
     (x + y) * (x + y) = (x + y)*x + (x + y)*y   := by rw [Nat.mul_add]
