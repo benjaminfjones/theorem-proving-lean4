@@ -109,29 +109,28 @@ section universal_exercises_3
   variable (men : Type) (barber : men)
   variable (shaves : men → men → Prop)
 
-  -- example (h : ∀ x : men, shaves barber x ↔ ¬ shaves x x) : False := sorry
-
+  open Classical  -- is this possible to prove w/o Classical?
+  example (h : ∀ x : men, shaves barber x ↔ ¬ shaves x x) : False :=
+    have hs : (shaves barber barber ↔ ¬ shaves barber barber) := h barber
+    byCases
+      (fun hb : shaves barber barber => absurd hb (hs.mp hb))
+      (fun hnb : ¬ shaves barber barber => absurd (hs.mpr hnb) hnb)
 end universal_exercises_3
 
 section universal_exercises_4
-  -- def even (n : Nat) : Prop := sorry
-
-  -- def prime (n : Nat) : Prop := sorry
-
-  -- def infinitely_many_primes : Prop := sorry
+  def even (n : Nat) : Prop := ∃ k : Nat, n = 2*k
+  def prime (n : Nat) : Prop :=
+    n > 1 ∧
+    (∀ k d : Nat, k > 0 ∧ d > 0 ∧ n = k * d → k = 1 ∨ k = n)
+  def infinitely_many_primes : Prop :=
+    ∀ n : Nat, ∃ p : Nat, p > n ∧ prime p
 
   -- def Fermat_prime (n : Nat) : Prop := sorry
-
   -- def infinitely_many_Fermat_primes : Prop := sorry
-
   -- def goldbach_conjecture : Prop := sorry
-
   -- def Goldbach's_weak_conjecture : Prop := sorry
-
   -- def Fermat's_last_theorem : Prop := sorry
 section universal_exercises_4
-
-
 
 --
 -- Equality
