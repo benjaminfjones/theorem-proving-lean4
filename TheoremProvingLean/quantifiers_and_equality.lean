@@ -168,10 +168,21 @@ end manual_eq_proofs
 #check Eq.subst
 
 section see_the_motive
-  variable (α : Type) (a b c d : α)
+  set_option pp.explicit true  -- display implicit arguments
+  variable (α : Type) (a b c d : α) (p : α → Prop)
   variable (hab : a = b) (h : p a)
-  #check @Eq.subst α _ a b hab h
-  -- the synthesized motive is not visible...
+  theorem a_sub : p b := @Eq.subst α _ a b hab h
+
+  -- The synthesized motive is now visible with the pretty printer
+  -- setting `pp.explicit true`:
+  --
+  -- theorem a_sub : ∀ (α : Type) (a b : α) (p : α → Prop),
+  --   @Eq α a b → p a → p b :=
+  --     fun α a b p hab h => @Eq.subst α p a b hab h
+  --
+  -- So the motive inferred was `p`! (as expected)
+  #print a_sub
+
 end see_the_motive
 
 -- substitue equal term into a predicate's argument
@@ -227,3 +238,21 @@ section calc_proofs
     --     _ = x * x + y * x + x * y + y * y          := by rw [←Nat.add_assoc]
 
 section calc_proofs
+
+section display_implicit_args
+  variable (g : Nat → Nat → Nat)
+  variable (hg : g 0 0 = 0)
+
+  theorem gex1 : ∃ x, g x x = x := ⟨0, hg⟩
+  theorem gex2 : ∃ x, g x 0 = x := ⟨0, hg⟩
+  theorem gex3 : ∃ x, g 0 0 = x := ⟨0, hg⟩
+  theorem gex4 : ∃ x, g x x = 0 := ⟨0, hg⟩
+
+  set_option pp.explicit true  -- display implicit arguments
+  #print gex1
+  #print gex2
+  #print gex3
+  #print gex4
+
+section display_implicit_args
+end
