@@ -309,9 +309,30 @@ variable (r : Prop)
       (fun h => Or.elim h
         (fun ⟨w, hpw⟩ => ⟨w, Or.inl hpw⟩)
         (fun ⟨w, hqw⟩ => ⟨w, Or.inr hqw⟩))
---
--- example : (∀ x, p x) ↔ ¬ (∃ x, ¬ p x) := sorry
--- example : (∃ x, p x) ↔ ¬ (∀ x, ¬ p x) := sorry
+
+  example : (∀ x, p x) ↔ ¬ (∃ x, ¬ p x) :=
+    Iff.intro
+      -- → can be shown constructively
+      (fun h =>
+        fun ⟨w, hnpw⟩ => hnpw (h w))
+      -- ← can be shown classically
+      (fun h =>
+        fun x =>
+          byContradiction
+            fun hnpx =>
+              have he : ∃ x, ¬ p x := ⟨x, hnpx⟩
+              show False from h he)
+
+  example : (∃ x, p x) ↔ ¬ (∀ x, ¬ p x) :=
+    Iff.intro
+      (fun ⟨ w, hpw ⟩ =>
+        fun (h : ∀ x, ¬p x) =>
+          have hnpw : ¬ p w := h w
+          show False from hnpw hpw)
+      (fun h =>  -- h : (α → ¬p x) → False
+        byContradiction
+          sorry)
+
 -- example : (¬ ∃ x, p x) ↔ (∀ x, ¬ p x) := sorry
 -- example : (¬ ∀ x, p x) ↔ (∃ x, ¬ p x) := sorry
 --
