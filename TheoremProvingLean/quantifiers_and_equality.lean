@@ -237,7 +237,7 @@ section calc_proofs
     --     _ = x * x + y * x + (x * y + y * y)        := by rw [Nat.add_mul]
     --     _ = x * x + y * x + x * y + y * y          := by rw [←Nat.add_assoc]
 
-section calc_proofs
+end calc_proofs
 
 section display_implicit_args
   variable (g : Nat → Nat → Nat)
@@ -253,6 +253,70 @@ section display_implicit_args
   #print gex2
   #print gex3
   #print gex4
+end display_implicit_args
 
-section display_implicit_args
-end
+--
+-- Existential Quantifiers
+--
+
+section exists_elim_example
+  variable (α : Type) (p q : α → Prop)
+  example (h : ∃ x, p x ∧ q x) : ∃ x, q x ∧ p x :=
+    Exists.elim h
+      (fun w =>                -- the witness
+       fun hw : p w ∧ q w =>   -- the proof of `p w`
+       -- show ∃ x, q x ∧ p x from ⟨w, hw.right, hw.left⟩)
+       show ∃ x, q x ∧ p x from ⟨w, ⟨hw.right, hw.left⟩⟩)  -- not nested implicit constructor
+
+  -- same thing using `match`
+  example (h : ∃ x, p x ∧ q x) : ∃ x, q x ∧ p x :=
+    match h with
+    | ⟨(w : α), (hw : p w ∧ q w)⟩ => ⟨w, hw.right, hw.left⟩
+
+  -- same thing using `let`
+  example (h : ∃ x, p x ∧ q x) : ∃ x, q x ∧ p x :=
+    let ⟨w, hpw, hqw⟩ := h
+    ⟨w, hqw, hpw⟩
+
+  -- same this but deconstruct in the `fun` argument
+  example : (∃ x, p x ∧ q x) → ∃ x, q x ∧ p x :=
+    fun ⟨w, hpw, hqw⟩ => ⟨w, hqw, hpw⟩
+end exists_elim_example
+
+section existential_exercises
+open Classical
+
+variable (α : Type) (p q : α → Prop)
+variable (r : Prop)
+
+  example : (∃ x : α, r) → r :=
+    fun h => match h with
+      | ⟨ w, hr ⟩ => hr
+
+  example (a : α) : r → (∃ x : α, r) :=
+    fun hr => ⟨a, hr⟩
+
+  example : (∃ x, p x ∧ r) ↔ (∃ x, p x) ∧ r :=
+    Iff.intro
+      (fun ⟨w, hpx, hr⟩ => ⟨⟨w, hpx⟩, hr⟩)
+      (fun ⟨⟨w, hw⟩, hr⟩ => ⟨w, ⟨hw, hr⟩⟩)
+
+  example : (∃ x, p x ∨ q x) ↔ (∃ x, p x) ∨ (∃ x, q x) :=
+    Iff.intro
+      (fun ⟨w, h⟩ => Or.elim h
+        (fun hpw => Or.inl ⟨w, hpw⟩)
+        (fun hqw => Or.inr ⟨w, hqw⟩))
+      (fun h => Or.elim h
+        (fun ⟨w, hpw⟩ => ⟨w, Or.inl hpw⟩)
+        (fun ⟨w, hqw⟩ => ⟨w, Or.inr hqw⟩))
+--
+-- example : (∀ x, p x) ↔ ¬ (∃ x, ¬ p x) := sorry
+-- example : (∃ x, p x) ↔ ¬ (∀ x, ¬ p x) := sorry
+-- example : (¬ ∃ x, p x) ↔ (∀ x, ¬ p x) := sorry
+-- example : (¬ ∀ x, p x) ↔ (∃ x, ¬ p x) := sorry
+--
+-- example : (∀ x, p x → r) ↔ (∃ x, p x) → r := sorry
+-- example (a : α) : (∃ x, p x → r) ↔ (∀ x, p x) → r := sorry
+-- example (a : α) : (∃ x, r → p x) ↔ (r → ∃ x, p x) := sorry
+
+end existential_exercises
