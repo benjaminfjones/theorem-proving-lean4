@@ -325,13 +325,28 @@ variable (r : Prop)
 
   example : (∃ x, p x) ↔ ¬ (∀ x, ¬ p x) :=
     Iff.intro
+      -- This direction follows directly from unpacking the hypothesis
       (fun ⟨ w, hpw ⟩ =>
         fun (h : ∀ x, ¬p x) =>
           have hnpw : ¬ p w := h w
           show False from hnpw hpw)
-      (fun h =>  -- h : (α → ¬p x) → False
+      -- This direction starts with contradiction where we need to show
+      -- an existential: ∃ x, p x. To construct the existential, we postulate a
+      -- universal statement and unpack that in order to produce an
+      -- function whose argument is an element of α that we can then use
+      -- in an existential intro.
+      (fun h : ¬(∀ x, ¬ p x) =>
         byContradiction
-          sorry)
+          fun hne : ¬ (∃ x, p x) =>
+            -- need to apply this to the top-level hypothesis
+            have hap : (∀ x, ¬ p x) :=
+              fun x =>
+                -- case on `p x`
+                byCases
+                  (fun hpx : p x => absurd (Exists.intro x hpx) hne)
+                  (fun hnpx : ¬ p x => hnpx)
+            show False from h hap
+      )
 
 -- example : (¬ ∃ x, p x) ↔ (∀ x, ¬ p x) := sorry
 -- example : (¬ ∀ x, p x) ↔ (∃ x, ¬ p x) := sorry
