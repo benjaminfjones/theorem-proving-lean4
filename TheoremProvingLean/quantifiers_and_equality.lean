@@ -320,16 +320,17 @@ variable (r : Prop)
         fun x =>
           byContradiction
             fun hnpx =>
-              have he : ∃ x, ¬ p x := ⟨x, hnpx⟩
-              show False from h he)
+              have : ∃ x, ¬ p x := ⟨x, hnpx⟩
+              -- show False by assumption)  -- assumption does not automatically apply assumptions
+              show False from h this)
 
   example : (∃ x, p x) ↔ ¬ (∀ x, ¬ p x) :=
     Iff.intro
       -- This direction follows directly from unpacking the hypothesis
       (fun ⟨ w, hpw ⟩ =>
         fun (h : ∀ x, ¬p x) =>
-          have hnpw : ¬ p w := h w
-          show False from hnpw hpw)
+          have : ¬ p w := h w
+          show False from this hpw)
       -- This direction starts with contradiction where we need to show
       -- an existential: ∃ x, p x. To construct the existential, we postulate a
       -- universal statement and unpack that in order to produce an
@@ -339,13 +340,13 @@ variable (r : Prop)
         byContradiction
           fun hne : ¬ (∃ x, p x) =>
             -- need to apply this to the top-level hypothesis
-            have hap : (∀ x, ¬ p x) :=
+            have : (∀ x, ¬ p x) :=
               fun x =>
                 -- case on `p x`
                 byCases
-                  (fun hpx : p x => absurd (Exists.intro x hpx) hne)
-                  (fun hnpx : ¬ p x => hnpx)
-            show False from h hap
+                  (fun hpx : p x => absurd (Exists.intro x hpx) (by assumption))
+                  (fun hnpx : ¬ p x => by assumption)
+            show False from h this
       )
 
 -- example : (¬ ∃ x, p x) ↔ (∀ x, ¬ p x) := sorry
