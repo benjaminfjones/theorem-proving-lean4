@@ -124,6 +124,7 @@ example : (p ∧ q) ∧ r ↔ p ∧ (q ∧ r) :=
       have hp : p := hpqr.left
       have hqr : q ∧ r := hpqr.right
       ⟨⟨hp, hqr.left⟩, hqr.right⟩)
+
 example : (p ∨ q) ∨ r ↔ p ∨ (q ∨ r) :=
   Iff.intro
     (fun hpqr =>
@@ -148,15 +149,17 @@ example : (p ∨ q) ∨ r ↔ p ∨ (q ∨ r) :=
 -- example : p ∨ (q ∧ r) ↔ (p ∨ q) ∧ (p ∨ r) := sorry
 
 -- Some useful validities
-theorem pq_imply_r : (p → (q → r)) ↔ (p ∧ q → r) := sorry
-#check @pq_imply_r
+theorem pq_imply_r : (p → (q → r)) ↔ (p ∧ q → r) :=
+  Iff.intro
+    (fun hlhs =>
+      fun hpq => (hlhs hpq.left) hpq.right)
+    (fun hrhs =>
+      fun hp hq => hrhs ⟨hp, hq⟩)
 theorem pq_imply_false : (p → ¬q) ↔ ¬(p ∧ q) := @pq_imply_r p q False
-#check pq_imply_false
-#check Iff.mp
 #check Iff.mp (@pq_imply_false p q)
 
 -- De Morgan's Law
-theorem de_morgan_1 : ¬(p ∨ q) ↔ ¬p ∧ ¬q :=
+theorem de_morgan_1 {p q : Prop} : ¬(p ∨ q) ↔ ¬p ∧ ¬q :=
   Iff.intro
     (fun hnpoq : (p ∨ q → False) =>
       have hnp : ¬p := (fun hp: p => hnpoq (Or.inl hp))
@@ -184,6 +187,7 @@ section de_morgan_not_and
             (fun hnq : ¬q => absurd hpq.right hnq))
 end de_morgan_not_and
 
+-- Note: this direction doesn't require classical
 theorem de_morgan_2_rhs : ¬p ∨ ¬q → ¬(p ∧ q) :=
   fun hnpnq : ¬p ∨ ¬q =>
     fun hpq : p ∧ q =>
@@ -213,42 +217,30 @@ example : (p → ¬q) ↔ ¬p ∨ ¬q :=
 
 -- Exercise: prove double negation elimination from excluded middle
 section classical
-open Classical
-#check em
-theorem dne {p : Prop} (h : ¬¬p) : p :=
-  Or.elim (em p)
-    (fun hp : p => hp)
-    (fun hnp : ¬p => absurd hnp h)
+
+  open Classical
+  theorem dne {p : Prop} (h : ¬¬p) : p :=
+    Or.elim (em p)
+      (fun hp : p => hp)
+      (fun hnp : ¬p => absurd hnp h)
+
 end classical
 
 -- Exercise: constructively prove excluded middle, assuming
 -- double negation elimination
 section alt_classical
-  variable (p q : Prop)
+
+  variable (p q r : Prop)
   axiom assumed_dne (h : ¬¬p) : p
-  #check @assumed_dne q
 
-  -- an absurdity from nothing
-  theorem not_both : ¬(p ∧ ¬p) :=
-    fun hpnp => absurd hpnp.left hpnp.right
+  -- Note that `de_morgan_1` does not require Classical.
+  theorem em : p ∨ ¬p :=
+    suffices hnno : ¬¬ (p ∨ ¬ p) from assumed_dne _ hnno
+    fun hno =>
+      have h1 : ¬ p ∧ ¬¬p := (@de_morgan_1 p (¬ p)).mp hno
+      have h2 : ¬ p ∧ p := ⟨h1.left, assumed_dne _ h1.right⟩
+      show False from h2.left h2.right
 
-  theorem de_morgan_2_self_lhs {r : Prop} : ¬(r ∧ ¬r) → (¬r ∨ ¬¬r) := sorry
-  #check @de_morgan_2_self_lhs (¬p)
-
-  -- use DeMorgan + absurdity
-  -- TODO: de_morgan_2 requires classical reasoning, making this proof of
-  -- `em` circular! Try using specialization de_morgan_2_self, proved with
-  -- dne
-  theorem neither_nor : ¬p ∨ ¬¬p :=
-     have hpp : ¬(p ∧ ¬p) := @not_both p
-     show ¬p ∨ ¬¬p from (@de_morgan_2_self_lhs _ hpp)
-
-  -- use assumed_dne and previous theorems to get `em`
-  theorem em {p : Prop} : p ∨ ¬ p :=
-    have (hnn : ¬p ∨ ¬¬p) := neither_nor p
-    Or.elim hnn
-      (fun hnp => Or.inr hnp)
-      (fun hnnp => Or.inl (assumed_dne p hnnp))
 end alt_classical
 
 end exercises
