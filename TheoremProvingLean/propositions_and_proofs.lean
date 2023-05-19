@@ -235,11 +235,14 @@ section alt_classical
 
   -- Note that `de_morgan_1` does not require Classical.
   theorem em : p ∨ ¬p :=
+    -- use `dne` to do proof by contradiction
     suffices hnno : ¬¬ (p ∨ ¬ p) from assumed_dne _ hnno
-    fun hno =>
-      have h1 : ¬ p ∧ ¬¬p := (@de_morgan_1 p (¬ p)).mp hno
-      have h2 : ¬ p ∧ p := ⟨h1.left, assumed_dne _ h1.right⟩
-      show False from h2.left h2.right
+    fun hno : ¬(p ∨ ¬p) =>
+      -- now that we have a disjunction in context we can use the
+      -- constructive direction of DeMorgan
+      have : ¬ p ∧ ¬¬p := (@de_morgan_1 p (¬ p)).mp hno
+      have : ¬ p ∧ p := ⟨this.left, assumed_dne _ this.right⟩
+      show False from this.left this.right
 
 end alt_classical
 
