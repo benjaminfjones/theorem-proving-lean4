@@ -9,9 +9,11 @@ section alt_classical
     suffices ¬¬ (p ∨ ¬ p) by
       apply assumed_dne; assumption
     intro
-    have : ¬ p ∧ ¬¬p := by
+    have h : ¬ p ∧ ¬¬p := by
       apply (@de_morgan_1 p (¬ p)).mp
       assumption
-    apply this.right; exact this.left
-
+    have : ¬ p := h.left
+    have : ¬¬ p := h.right
+    contradiction
 end alt_classical
+
