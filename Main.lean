@@ -4,6 +4,7 @@ import TheoremProvingLean.implicit_args
 import TheoremProvingLean.simple_type_theory
 import TheoremProvingLean.propositions_and_proofs
 import TheoremProvingLean.quantifiers_and_equality
+import TheoremProvingLean.tactics
 
 def main : IO Unit :=
   IO.println s!"Hello, {hello}!"
