@@ -131,7 +131,7 @@ section tactics_1
     axiom assumed_dne {p : Prop} (h : ¬¬p) : p
     axiom de_morgan_1 {p q : Prop} : ¬(p ∨ q) ↔ ¬p ∧ ¬q
 
-    protected theorem em {p : Prop}: p ∨ ¬p := by
+    theorem alt_classical_redux_em {p : Prop}: p ∨ ¬p := by
       suffices ¬¬ (p ∨ ¬ p) by
         apply assumed_dne; assumption
       intro

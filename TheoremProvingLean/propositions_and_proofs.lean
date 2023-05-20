@@ -228,13 +228,13 @@ end classical
 
 -- Exercise: constructively prove excluded middle, assuming
 -- double negation elimination
-section alt_classical
+namespace alt_classical
 
   variable (p q r : Prop)
   axiom assumed_dne (h : ¬¬p) : p
 
   -- Note that `de_morgan_1` does not require Classical.
-  theorem em : p ∨ ¬p :=
+  theorem alt_classical_em : p ∨ ¬p :=
     -- use `dne` to do proof by contradiction
     suffices hnno : ¬¬ (p ∨ ¬ p) from assumed_dne _ hnno
     fun hno : ¬(p ∨ ¬p) =>
