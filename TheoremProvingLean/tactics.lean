@@ -127,11 +127,11 @@ section tactics_1
       cases hpoq <;> contradiction
 
   -- Re-prove `em` from `dne` using tactics
-  section alt_classical_redux
+  namespace alt_classical_redux
     axiom assumed_dne {p : Prop} (h : ¬¬p) : p
     axiom de_morgan_1 {p q : Prop} : ¬(p ∨ q) ↔ ¬p ∧ ¬q
 
-    theorem em {p q : Prop}: p ∨ ¬p := by
+    protected theorem em {p : Prop}: p ∨ ¬p := by
       suffices ¬¬ (p ∨ ¬ p) by
         apply assumed_dne; assumption
       intro
