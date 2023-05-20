@@ -1,21 +1,6 @@
-
--- Re-prove `em` from `dne` using tactics
-section alt_classical
-
-  axiom assumed_dne {p : Prop} (h : ¬¬p) : p
-  axiom de_morgan_1 {p q : Prop} : ¬(p ∨ q) ↔ ¬p ∧ ¬q
-
-  theorem em {p q : Prop}: p ∨ ¬p := by
-    suffices ¬¬ (p ∨ ¬ p) by
-      apply assumed_dne; assumption
-    intro
-    have h : ¬ p ∧ ¬¬p := by
-      apply (@de_morgan_1 p (¬ p)).mp
-      assumption
-    have : ¬ p := h.left
-    have : ¬¬ p := h.right
-    contradiction
-end alt_classical
+--
+-- Combinations of Tactics
+--
 
 -- a fancy combination of tactics
 example (p q r : Prop) (hp : p) (hq : q) (hr : r) : p ∧ q ∧ r := by
@@ -76,7 +61,7 @@ section simplify_examples
 
   -- non-trivial propositional reasoning by applying `simp` with all hypotheses
   example (p q : Prop) (hp : p) : p ∧ q ↔ q := by
-    simp [*]  -- rewrites p ∧ q to True ∧ q to q, then q ↔ q by refl 
+    simp [*]  -- rewrites p ∧ q to True ∧ q to q, then q ↔ q by refl
     -- alt: simp [hp]
 
   example (p q : Prop) (hp : p) : p ∨ q := by
@@ -93,3 +78,73 @@ section simplify_examples
     simp_arith
 
 end simplify_examples
+
+--
+-- Exercises
+--
+
+-- 1.
+section tactics_1
+
+  example : p ∧ q ↔ q ∧ p := by
+    apply Iff.intro <;>
+    -- same tactic block solves both cases
+    (intro ⟨_, _⟩
+     constructor <;> assumption)
+
+  example : (p ∧ q) ∧ r ↔ p ∧ (q ∧ r) := by
+    apply Iff.intro
+    . intro
+      | ⟨⟨_, _⟩, _⟩ =>
+        repeat (any_goals (first | constructor | assumption))
+    . intro
+      | ⟨_, ⟨_, _⟩⟩ =>
+        repeat (any_goals (first | constructor | assumption))
+
+  -- pq_implies_r
+  example : (p → (q → r)) ↔ (p ∧ q → r) := by
+    apply Iff.intro
+    . intro h ⟨_, _⟩
+      simp [*]
+      -- alt: apply h <;> assumption
+    . intro h _ _
+      have : p ∧ q := by constructor <;> assumption
+      simp [*]
+
+  -- de_morgan_1
+  example {p q : Prop} : ¬(p ∨ q) ↔ ¬p ∧ ¬q := by
+    apply Iff.intro
+    . intro h
+      have : ¬p := fun hp => by
+        apply h
+        constructor; assumption
+      have : ¬q := fun hq => by
+        apply h
+        -- constructor; assumption  -- doesn't work b/c picks first constructor, not second
+        apply Or.inr; assumption
+      constructor <;> assumption
+    . intro ⟨hnp, hnq⟩ hpoq
+      cases hpoq <;> contradiction
+
+  -- Re-prove `em` from `dne` using tactics
+  section alt_classical_redux
+    axiom assumed_dne {p : Prop} (h : ¬¬p) : p
+    axiom de_morgan_1 {p q : Prop} : ¬(p ∨ q) ↔ ¬p ∧ ¬q
+
+    theorem em {p q : Prop}: p ∨ ¬p := by
+      suffices ¬¬ (p ∨ ¬ p) by
+        apply assumed_dne; assumption
+      intro
+      have h : ¬ p ∧ ¬¬p := by
+        rw [← de_morgan_1]  -- much nicer!
+        assumption
+      cases h with
+      | intro hnp hnnp => contradiction
+  end alt_classical_redux
+end tactics_1
+
+section tactics_2
+example (p q r : Prop) (hp : p)
+        : (p ∨ q ∨ r) ∧ (q ∨ p ∨ r) ∧ (q ∨ r ∨ p) := by
+  simp [*]  -- that was too easy!
+end tactics_2
