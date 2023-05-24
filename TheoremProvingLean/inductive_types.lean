@@ -98,7 +98,7 @@ inductive Option (α : Type) where
   | none : Option α
   | some : α → Option α
   deriving Repr
-  
+
 open Option
 
 def a_one : Option Nat := some 1
@@ -113,13 +113,29 @@ def comp_partial {α β γ : Type} (f : β → Option γ) (g : α → Option β)
 def all_none {α β : Type} : α → Option β := fun _ => Option.none
 
 theorem comp_all_none_with {α β γ : Type} (g : α → Option β) (x : α)
-  : (comp_partial (@all_none β γ) g) x = Option.none :=
-  by
-    let y := g x  -- trying to intro y and replace g x
-    have hy : y = g x := rfl
-    rw [← hy]  -- XXX tactic fails
+  : (comp_partial (@all_none β γ) g) x = Option.none := by
+    cases h : (g x)
+    -- in each case, unfold the definition of `comp_partial` manually in a calculation and rewrite
+    -- using the case hypothesis equality
+    . calc
+        (comp_partial (@all_none β γ) g) x = match g x with | Option.none => none | Option.some y => (@all_none β γ) y := rfl
+        _                                  = match Option.none with | Option.none => none | Option.some y => (@all_none β γ) y := by rw [h]
+        _                                  = Option.none := by rfl
+    . calc
+        (comp_partial (@all_none β γ) g) x = match g x with | Option.none => none | Option.some y => (@all_none β γ) y := rfl
+        _                                  = match Option.some _ with | Option.none => none | Option.some y => (@all_none β γ) y := by rw [h]
+        _                                  = (@all_none β γ) _ := by rfl
+        _                                  = Option.none := by rfl
 
-theorem comp_with_all_none {α β γ : Type} (g : α → Option β) (x : α)
-  : (comp_partial (@all_none β γ) g) x = Option.none := sorry
+theorem comp_with_all_none {α β γ : Type} (f : β → Option γ) (x : α)
+  : (comp_partial f (@all_none α β)) x = Option.none :=
+    calc
+        (comp_partial f (@all_none α β)) x = match (@all_none α β) x with | Option.none => none | Option.some y => (@all_none β γ) y := rfl
+        _                                  = match Option.none with | Option.none => none | Option.some y => (@all_none β γ) y := by rfl
+        _                                  = Option.none := by rfl
+
+-- TODO: use function extensionality to prove:
+-- theorem comp_with_all_none_eq_all_none {α β γ : Type} (f : β → Option γ) (x : α)
+--   : comp_partial f (@all_none α β) = (@all_none α γ)
 
 end PartialComposition
