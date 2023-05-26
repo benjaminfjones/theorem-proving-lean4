@@ -115,8 +115,9 @@ def all_none {α β : Type} : α → Option β := fun _ => Option.none
 theorem comp_all_none_with {α β γ : Type} (g : α → Option β) (x : α)
   : (comp_partial (@all_none β γ) g) x = Option.none := by
     -- use `simp` to unfold definitions of the two defined functions involved
-    -- then rewrite with each case of `g x` and reduce
-    cases h : g x <;> (simp [comp_partial, all_none]; rw [h])
+    -- then split the match cases and reduce
+    simp [comp_partial, all_none]
+    split <;> rfl
 
 theorem comp_with_all_none {α β γ : Type} (f : β → Option γ) (x : α)
   : (comp_partial f (@all_none α β)) x = Option.none := by
