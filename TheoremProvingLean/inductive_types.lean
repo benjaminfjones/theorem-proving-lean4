@@ -114,25 +114,13 @@ def all_none {α β : Type} : α → Option β := fun _ => Option.none
 
 theorem comp_all_none_with {α β γ : Type} (g : α → Option β) (x : α)
   : (comp_partial (@all_none β γ) g) x = Option.none := by
-    cases h : (g x)
-    -- in each case, unfold the definition of `comp_partial` manually in a calculation and rewrite
-    -- using the case hypothesis equality
-    . calc
-        (comp_partial (@all_none β γ) g) x = match g x with | Option.none => none | Option.some y => (@all_none β γ) y := rfl
-        _                                  = match Option.none with | Option.none => none | Option.some y => (@all_none β γ) y := by rw [h]
-        _                                  = Option.none := by rfl
-    . calc
-        (comp_partial (@all_none β γ) g) x = match g x with | Option.none => none | Option.some y => (@all_none β γ) y := rfl
-        _                                  = match Option.some _ with | Option.none => none | Option.some y => (@all_none β γ) y := by rw [h]
-        _                                  = (@all_none β γ) _ := by rfl
-        _                                  = Option.none := by rfl
+    -- use `simp` to unfold definitions of the two defined functions involved
+    -- then rewrite with each case of `g x` and reduce
+    cases h : g x <;> (simp [comp_partial, all_none]; rw [h])
 
 theorem comp_with_all_none {α β γ : Type} (f : β → Option γ) (x : α)
-  : (comp_partial f (@all_none α β)) x = Option.none :=
-    calc
-        (comp_partial f (@all_none α β)) x = match (@all_none α β) x with | Option.none => none | Option.some y => (@all_none β γ) y := rfl
-        _                                  = match Option.none with | Option.none => none | Option.some y => (@all_none β γ) y := by rfl
-        _                                  = Option.none := by rfl
+  : (comp_partial f (@all_none α β)) x = Option.none := by
+    simp [comp_partial, all_none]
 
 -- TODO: use function extensionality to prove:
 -- theorem comp_with_all_none_eq_all_none {α β γ : Type} (f : β → Option γ) (x : α)
