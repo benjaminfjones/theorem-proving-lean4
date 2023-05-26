@@ -128,3 +128,8 @@ theorem comp_with_all_none {α β γ : Type} (f : β → Option γ) (x : α)
 --   : comp_partial f (@all_none α β) = (@all_none α γ)
 
 end PartialComposition
+
+-- Inhabited is an inductive data type with a single constructor that takes a value of the
+-- inhabited type
+example : Inhabited Nat := Inhabited.mk 0
+example : Inhabited Bool := ⟨true⟩
