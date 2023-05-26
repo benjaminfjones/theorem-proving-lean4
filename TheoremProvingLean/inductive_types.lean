@@ -123,9 +123,18 @@ theorem comp_with_all_none {α β γ : Type} (f : β → Option γ) (x : α)
   : (comp_partial f (@all_none α β)) x = Option.none := by
     simp [comp_partial, all_none]
 
--- TODO: use function extensionality to prove:
--- theorem comp_with_all_none_eq_all_none {α β γ : Type} (f : β → Option γ) (x : α)
---   : comp_partial f (@all_none α β) = (@all_none α γ)
+-- Version of `comp_all_none_with` using function extensionality
+theorem comp_all_none_with_eq_all_none {α β γ : Type} (g : α → Option β) (x : α)
+  : comp_partial (@all_none β γ) g = (@all_none α γ) := by
+  funext
+  apply comp_all_none_with
+
+-- Version of `comp_with_all_none` using function extensionality
+theorem comp_with_all_none_eq_all_none {α β γ : Type} (f : β → Option γ) (x : α)
+  : comp_partial f (@all_none α β) = (@all_none α γ) := by
+    funext
+    apply comp_with_all_none
+
 
 end PartialComposition
 
