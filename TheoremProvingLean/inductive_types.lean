@@ -142,3 +142,104 @@ end PartialComposition
 -- inhabited type
 example : Inhabited Nat := Inhabited.mk 0
 example : Inhabited Bool := ⟨true⟩
+
+--
+-- Exercises 1:
+-- Natural Numbers from Scratch
+--
+
+namespace MyNat
+
+inductive Nat where
+  | zero : Nat
+  | succ : Nat -> Nat
+  deriving Repr
+
+/-
+@Nat.rec : {motive : Nat → Sort u_1} →
+  motive Nat.zero → ((a : Nat) → motive a → motive (Nat.succ a)) → (t : Nat) → motive t
+-/
+#check @Nat.rec
+/-
+@Nat.recOn : {motive : Nat → Sort u_1} →
+  (t : Nat) → motive Nat.zero → ((a : Nat) → motive a → motive (Nat.succ a)) → motive t
+-/
+#check @Nat.recOn
+
+def add (n m : Nat) : Nat :=
+  match m with
+  | Nat.zero => n
+  | Nat.succ k => Nat.succ (add n k)
+
+open Nat
+#eval add (succ (succ zero)) (succ zero)
+
+instance : Add Nat where
+  add := add
+
+#eval (succ (succ zero)) + (succ zero)
+
+theorem add_zero (m : Nat) : m + zero = m := by rfl
+theorem add_succ (m k : Nat) : m + (succ k) = succ (m + k) := by rfl
+theorem zero_add (m : Nat) : zero + m = m := by
+  induction m with
+  | zero => rfl
+  | succ k ih =>
+    rw [add_succ, ih]
+theorem succ_add (m k : Nat) : (succ k) + m = succ (k + m) := by
+  induction m with
+  | zero => rfl
+  | succ l ih =>
+    rw [add_succ, add_succ, ih]
+
+-- alternately, using rec:
+-- this is harder to use with tactics inside the minor premises
+theorem zero_add_by_rec (m : Nat) : zero + m = m :=
+  Nat.recOn (motive := fun x => zero + x = x)
+  m
+  (show zero + zero = zero by rfl)
+  (fun (a : Nat) (ih : zero + a = a) =>
+    show zero + (succ a) = succ a by rw [add_succ, ih])
+  
+theorem add_assoc (m n k : Nat) : (m + n) + k = m + (n + k) := by
+  induction k with
+  | zero => repeat (apply add_zero)
+  | succ l ih =>
+    repeat (rw [add_succ])
+    rw [ih]
+
+theorem add_comm (m n : Nat) : m + n = n + m := by
+  induction n with
+  | zero => simp [zero_add, add_zero]
+  | succ l ih => simp [succ_add, add_succ, ih]
+
+def one : Nat := succ zero
+
+def pred (n : Nat) : Nat :=
+  match n with
+  | zero => zero
+  | succ k => k
+
+theorem succ_pred (n : Nat) : n ≠ zero → succ (pred n) = n := by
+  intro h
+  simp [pred]
+  split
+  . contradiction
+  . rfl
+
+theorem pred_succ (n : Nat) : pred (succ n) = n := by
+  simp [pred]
+
+theorem add_pred (m n : Nat) : n ≠ zero → m + pred n = pred (m + n) := by
+  intro
+  match n with
+  | zero => contradiction
+  | succ l => 
+    rw [add_succ, pred_succ, pred_succ]
+
+theorem pred_add (m n : Nat) : m ≠ zero → pred m + n = pred (m + n) := by
+  intro hm
+  rw [add_comm (pred m) n, add_pred n m hm, add_comm]
+  
+
+end MyNat
