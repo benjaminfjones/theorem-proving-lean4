@@ -241,5 +241,24 @@ theorem pred_add (m n : Nat) : m ≠ zero → pred m + n = pred (m + n) := by
   intro hm
   rw [add_comm (pred m) n, add_pred n m hm, add_comm]
   
+--
+-- Num literals are setup using the `OfNat` class
+-- It can be instantiated for any single primite nat, or all of them like in the
+-- Lean prelude: https://github.com/leanprover/lean4/blob/master/src/Init/Prelude.lean#L1069
+--
+instance : OfNat Nat 0 where
+  ofNat := zero
+
+instance : OfNat Nat 1 where
+  ofNat := succ zero
+
+example : zero = 0 := rfl
+example : succ zero = 1 := rfl
+
+theorem one_eq_succ_zero : 1 = succ 0 := by rfl
+theorem zero_eq_lit_zero : zero = 0 := by rfl
+theorem succ_eq_add_one (n : Nat) : succ n = n + 1 := by
+  rw [one_eq_succ_zero, add_succ, ← zero_eq_lit_zero, add_zero]
+
 
 end MyNat
