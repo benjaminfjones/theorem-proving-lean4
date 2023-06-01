@@ -187,11 +187,11 @@ instance : Add Nat where
 
 #eval (succ (succ zero)) + (succ zero)
 
-theorem add_zero (m : Nat) : m + zero = m := by rfl
+@[simp] theorem add_zero (m : Nat) : m + zero = m := by rfl
 theorem add_succ (m k : Nat) : m + (succ k) = succ (m + k) := by rfl
 
 -- Addition World: level 1
-theorem zero_add (m : Nat) : zero + m = m := by
+@[simp] theorem zero_add (m : Nat) : zero + m = m := by
   induction m with
   | zero => rfl
   | succ k ih =>
@@ -238,15 +238,21 @@ theorem add_comm (m n : Nat) : m + n = n + m := by
 instance : OfNat Nat 0 where
   ofNat := zero
 
-instance : OfNat Nat 1 where
-  ofNat := succ zero
+def one : Nat := succ zero
 
-@[simp] theorem one_eq_succ_zero : 1 = succ 0 := by rfl
-@[simp] theorem zero_eq_lit_zero : zero = 0 := by rfl
+instance : OfNat Nat 1 where
+  ofNat := one
+
+-- Unfortunately these literals don't work as well as they do in the Natural Number Game,
+-- e.g. reduction to `zero` and `one` don't automatically occur after `rewrite` or `induction`
+
+theorem one_eq_succ_zero : one = succ zero := by rfl
+theorem lit_one_eq_succ_zero : 1 = succ zero := by rfl
+theorem lit_zero_eq_zero : 0 = zero := by rfl
 
 -- Addition World: level 5
-theorem succ_eq_add_one (n : Nat) : succ n = n + 1 := by
-  rw [one_eq_succ_zero, add_succ, ← zero_eq_lit_zero, add_zero]
+theorem succ_eq_add_one (n : Nat) : succ n = n + one := by
+  rw [one_eq_succ_zero, add_succ, add_zero]
 
 -- Addition World: level 6
 theorem add_comm_right (a b c : Nat) : a + b + c = a + c + b :=
@@ -259,16 +265,24 @@ theorem add_comm_right (a b c : Nat) : a + b + c = a + c + b :=
 example (a b c : Nat) : a + b + c = a + c + b := by
   rw [add_assoc, add_comm b c, add_assoc]
 
--- TODO: figure out how to get `simp` to prove this from the above theorems
--- Number World uses a builtin `add_comm_monoid` structure which doesn't exist
+theorem add_left_comm (a b c : Nat) : a + (b + c) = b + (a + c) := by
+  rw [← add_assoc, add_comm a b, add_assoc]
+
+attribute [simp] add_assoc add_comm add_left_comm
+
+-- Figuring out how to get `simp` to prove this from the above theorems is tricky.
+-- Experimentation shows that defining `attribute [simp]` in the line above with
+-- exactly these three theorems does the job. Using `add_assoc` and `add_comm` alone
+-- does not, neither does adding `add_comm_right`.
+--
+-- Note: Number World uses a builtin `add_comm_monoid` structure which doesn't exist
 -- (builtin) in Lean4
 --
--- example (a b c d e : Nat) : (((a+b)+c)+d)+e=(c+((b+e)+a))+d := by
---   simp [add_comm, add_assoc]
---   sorry
+example (a b c d e : Nat) : (((a+b)+c)+d)+e=(c+((b+e)+a))+d := by
+  simp
 
 --
--- Bonus Exercise 1: total predecessor function
+-- Bonus Exercise 1: total predecessor function, a.k.a. "Predecessor World"
 --
 
 def pred (n : Nat) : Nat :=
@@ -297,5 +311,125 @@ theorem pred_add (m n : Nat) : m ≠ zero → pred m + n = pred (m + n) := by
   intro hm
   rw [add_comm (pred m) n, add_pred n m hm, add_comm]
 
+
+--
+-- Multiplication World
+-- Ref: https://www.ma.imperial.ac.uk/~buzzard/xena/natural_number_game/?world=3&level=1
+--
+
+def mul (a b : Nat) : Nat :=
+  match b with
+  | zero => zero
+  | succ b' => mul a b' + a
+
+instance : Mul Nat where
+  mul := mul
+
+-- Stated as axioms in Multiplication World
+@[simp] theorem mul_zero (a : Nat) : a * zero = zero := rfl
+theorem mul_succ (a b : Nat) : a * succ b = (a * b) + a := rfl
+
+-- Multiplication World: level 1
+@[simp] theorem zero_mul (a : Nat) : zero * a = zero := by
+  induction a
+  . rfl
+  . rw [mul_succ, add_zero]
+    assumption
+
+-- Multiplication World: level 2
+@[simp] theorem mul_one (a : Nat) : a * one = a := by
+  rw [one_eq_succ_zero, mul_succ, mul_zero, zero_add]
+
+-- Multiplication World: level 3
+theorem one_mul (a : Nat) : one * a = a := by
+  induction a with
+  | zero => rw [mul_zero]
+  | succ a' ih => rw [mul_succ, ih, succ_eq_add_one]
+
+-- Multiplication World: level 4
+theorem mul_add (t a b : Nat) : t * (a + b) = t * a + t * b := by
+  induction b with
+  | zero =>
+    rw [add_zero, mul_zero, add_zero]
+  | succ b' ih =>
+    rw [add_succ, mul_succ, ih, mul_succ, add_assoc]
+
+-- Multiplication World: level 5
+theorem mul_assoc (a b c : Nat) : (a * b) * c = a * (b * c) := by
+  induction c with
+  | zero => repeat (rw [mul_zero])
+  | succ c' ih =>
+    repeat (rw [mul_succ])
+    rw [mul_add]
+    rw [ih]
+
+-- Multiplication World: level 6
+theorem succ_mul (a b : Nat) : (succ a) * b = a * b + b := by
+  induction b with
+  | zero =>
+    rw [mul_zero, mul_zero, add_zero]
+  -- ih : succ a * b' = a * b' + b'
+  | succ b' ih =>
+    show succ a * succ b' = a * succ b' + succ b'
+    exact
+      calc
+        succ a * succ b' = succ a * (b' + one) := by rw [succ_eq_add_one b']
+        _                = succ a * b' + succ a * one := by rw [mul_add]
+        _                = succ a * b' + succ a := by rw [mul_one]
+        _                = a * b' + b' + succ a := by rw [ih]
+        _                = a * b' + succ a + b' := by rw [add_comm_right]
+        _                = a * b' + (a + one) + b' := by rw [succ_eq_add_one]
+        _                = a * b' + a + one + b' := by simp only [add_assoc]
+        _                = a * succ b' + one + b' := by rw [← mul_succ]
+        _                = a * succ b' + b' + one := by rw [add_comm_right]
+        _                = a * succ b' + (b' + one) := by rw [add_assoc]
+        _                = a * succ b' + succ b' := by rw [succ_eq_add_one]
+        -- phew!
+
+-- simplifier version of `succ_mul` fully blasts both sides down to `add` and
+-- primitive `mul` facts
+example (a b : Nat) : (succ a) * b = a * b + b := by
+  induction b with
+  | zero =>
+    rw [mul_zero, mul_zero, add_zero]
+  | succ b' ih =>
+    rw [succ_eq_add_one b', succ_eq_add_one a]
+    simp [mul_add, mul_succ, one_eq_succ_zero, add_succ]
+    rw [ih]
+    rw [succ_add]
+    -- only need additive assoc, comm, and injection from here
+    -- ⊢ succ (a + (a * b' + b')) = succ (a + (b' + a * b'))
+    simp
+
+-- Multiplication World: level 7
+theorem add_mul (a b t: Nat) : (a + b) * t = a * t + b * t := by
+  induction t with
+  | zero =>
+    simp
+  | succ t' ih =>
+    rw [mul_succ, ih, mul_succ, mul_succ]
+    -- Note: `simp` works well here after tweaking the simp attributes for addition (see above)
+    -- ⊢ a * t' + b * t' + (a + b) = a * t' + a + (b * t' + b)
+    simp
+
+-- Multiplication World: level 8
+theorem mul_comm (a b : Nat) : a * b = b * a := by
+  induction b with
+  | zero => simp
+  | succ b' ih => rw [mul_succ, succ_mul, ih]
+
+-- Multiplication World: level 9
+theorem mul_left_comm (a b c : Nat) : a * (b * c) = b * (a * c) := by
+  rw [← mul_assoc]
+  rw [mul_comm a b]
+  rw [mul_assoc]
+
+-- Note: using same combo of simp attributes for multiplcation as addition, favouring
+-- the `mul_left_comm` variant.
+attribute [simp] mul_assoc mul_comm mul_left_comm
+
+-- Witness the power!
+example (a b c d e : Nat) : (((a*b)*c)*d)*e=(c*((b*e)*a))*d := by
+  simp
 
 end MyNat
