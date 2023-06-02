@@ -432,4 +432,104 @@ attribute [simp] mul_assoc mul_comm mul_left_comm
 example (a b c d e : Nat) : (((a*b)*c)*d)*e=(c*((b*e)*a))*d := by
   simp
 
+--
+-- Power World
+--
+
+def pow (m n : Nat): Nat :=
+  match n with
+  | zero => one
+  | succ n' => pow m n' * m
+
+-- introduces notation: `a ^ b`
+instance : Pow Nat Nat where
+  pow := pow
+
+-- "Axioms"
+theorem pow_zero (m : Nat) : m ^ zero = one := rfl
+-- with literals
+theorem pow_zero' (m : Nat) : m ^ 0 = 1 := rfl
+theorem pow_succ (m n : Nat) : m ^ succ n = m ^ n * m := rfl
+
+-- Power World: level 1
+theorem zero_pow_zero : zero ^ zero = one := rfl
+-- with literals
+theorem zero_pow_zero' : 0 ^ 0 = 1 := rfl
+
+-- Power World: level 2
+theorem zero_pow_succ (n : Nat) : zero ^ succ n = zero := by
+  -- rewriter:
+  rw [pow_succ, mul_zero]
+  -- explicit calc:
+  --   calc
+  --     0 ^ succ n = zero ^ succ n := by rfl
+  --     _          = zero ^ n * zero := by rfl
+  --     _          = zero := by rw [mul_zero]
+  -- others:
+  --   simp [pow]     -- using `0`, nope; using `zero` yep!
+  --   rfl            -- yep!? not clear how...
+
+-- Power World: level 3
+theorem pow_one (m : Nat) : m ^ one = m := by
+  rw [one_eq_succ_zero, pow_succ, pow_zero, one_mul]
+
+-- Power World: level 4
+theorem one_pow (n : Nat) : one ^ n = one := by
+  induction n with
+  | zero => rw [pow_zero]
+  | succ n' ih =>
+    rw [pow_succ, ih, mul_one]
+
+-- Power World: level 5
+theorem pow_add (a m n : Nat) : a ^ (m + n) = (a ^ m) * (a ^ n) := by
+  induction n with
+  | zero => rw [add_zero, pow_zero, mul_one]
+  | succ n' ih =>
+    rw [add_succ, pow_succ, pow_succ, ih, mul_assoc]
+
+-- Power World: level 6
+theorem mul_pow (a b n : Nat) : (a * b) ^ n = (a ^ n) * (b ^ n) := by
+  induction n with
+  | zero =>
+    repeat (rw [pow_zero])
+    rw [mul_one]
+  | succ n' ih =>
+    rw [pow_succ, ih]
+    repeat (rw [pow_succ])
+    simp  -- mul assoc and comm
+    -- alternately:
+    --   simp [ih, pow_succ]
+
+-- Power World: level 7 (boss level!)
+theorem pow_pow (a m n : Nat) : (a ^ m) ^ n = a ^ (m * n) := by
+  induction n with
+  | zero => rw [pow_zero, mul_zero, pow_zero]
+  | succ n' ih => rw [pow_succ, ih, mul_succ, pow_add]
+
+-- Power World: level 8 (oh snap, final boss level!)
+def two : Nat := succ one
+theorem two_eq_succ_one : two = succ one := rfl
+theorem add_squared (a b : Nat) : (a + b) ^ two = a^two + b^two + two*a*b := by
+  rw [two_eq_succ_one]
+  rw [one_eq_succ_zero]
+  -- repeat (rw [pow_succ])
+  rw [pow_succ, pow_succ, pow_succ, pow_succ, pow_succ, pow_succ]
+  -- repeat (rw [pow_zero, one_mul])
+  rw [pow_zero, pow_zero, pow_zero]
+  rw [one_mul, one_mul, one_mul]
+  rw [add_mul, mul_add, mul_add]
+  rw [succ_mul, succ_mul, zero_mul, zero_add, add_mul]
+  -- simp  -- finishes the job
+  --
+  -- 22 rewrites to here, then simp. How many `rw`'s minimum are needed to replace `simp`?
+  -- ⊢ a * a + a * b + (b * a + b * b) = a * a + b * b + (a * b + a * b)
+  rw [add_assoc]
+  rw [add_assoc (a*a) _ _]
+  rw [add_left_comm (b*b) (a*b) (a*b)]
+  rw [add_comm (b*b) (a*b)]
+  rw [mul_comm a b]
+  -- 27 rewrites total!
+  -- Note: world record seems to be 18
+
+
 end MyNat
