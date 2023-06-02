@@ -629,5 +629,73 @@ theorem add_squared (a b : Nat) : (a + b) ^ two = a^two + b^two + two*a*b := by
 
   end FunctionWorld
 
+  section PropositionWorld
+
+  -- Proposition World: level 1
+  example (P Q : Prop) (p : P) (h : P → Q) : Q := by exact h p
+
+  -- Proposition World: level 2
+  theorem imp_self (P : Prop) : P → P := by intro p; exact p  -- or `assumption`
+
+  -- Proposition World: levels 3, 4
+  theorem maze (P Q R S T U: Prop)
+    (p : P)
+    (h : P → Q)
+    (i : Q → R)
+    (j : Q → T)
+    (k : S → T)
+    (l : T → U)
+    : U := by
+      apply l; apply j; apply h; exact p
+
+  -- Proposition World: levels 5, 6 are same as Function World
+  -- Proposition World: levels 7 becomes a named theorem
+
+
+  -- Proposition World: level 7
+  -- Transitivity of implication
+  theorem imp_trans (P Q F : Prop) : (P → Q) → (Q → F) → (P → F) := by
+    intro f g _
+    apply g
+    apply f
+    assumption
+
+  -- Proposition World: level 8
+  theorem not_iff_imp_false (P : Prop) : ¬P ↔ (P → False) :=
+    Iff.intro
+      (by intros; contradiction)
+      (by intro f; exact f)
+
+  theorem contrapositive (P Q : Prop) : (P → Q) → (¬ Q → ¬ P) := by
+    repeat (rw [not_iff_imp_false])
+    show (P → Q) → (Q → False) → P → False
+    exact imp_trans P Q False
+    --
+    -- alt: the same exact proof from level 7 works (again)
+    -- intro f g _
+    -- apply g
+    -- apply f
+    -- assumption
+
+  -- Proposition World: level 9 (a big Prop maze)
+  example (A B C D E F G H I J K L : Prop)
+    (f1 : A → B) (f2 : B → E) (f3 : E → D) (f4 : D → A) (f5 : E → F)
+    (f6 : F → C) (f7 : B → C) (f8 : F → G) (f9 : G → J) (f10 : I → J)
+    (f11 : J → I) (f12 : I → H) (f13 : E → H) (f14 : H → K) (f15 : I → L)
+     : A → L := by
+    -- Note: as of 2023-06-01, a tactic for congruence closure (`cc` in Lean 3/mathlib3)
+    -- doesn't seem to be builtin in Lean 4 yet.
+    -- See: https://leanprover-community.github.io/mathlib_docs/tactics.html#cc%20(congruence%20closure)
+      intro
+      apply f15
+      apply f11
+      apply f9
+      apply f8
+      apply f5
+      apply f2
+      apply f1
+      assumption
+
+  end PropositionWorld
 
 end MyNat
