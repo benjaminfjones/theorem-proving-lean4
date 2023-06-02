@@ -532,4 +532,102 @@ theorem add_squared (a b : Nat) : (a + b) ^ two = a^two + b^two + two*a*b := by
   -- Note: world record seems to be 18
 
 
+  --
+  -- Function World
+  --
+
+  section FunctionWorld
+
+  -- Function World: level 1
+  example (P Q : Type) (p : P) (h : P → Q) : Q := h p
+  example (P Q : Type) (p : P) (h : P → Q) : Q := by exact h p
+
+  -- Function World: level 2
+  example : Nat → Nat :=
+    fun n => (succ two) * n + two
+  -- alt: using `intro`
+  example : Nat → Nat := by
+    intro x
+    exact (succ two) * x + two
+
+  -- Function World: level 3
+  example (P Q R S T U: Type)
+    (p : P)
+    (h : P → Q)
+    (i : Q → R)
+    (j : Q → T)
+    (k : S → T)
+    (l : T → U)
+    : U := by
+      have q : Q := h p
+      have t : T := j q
+      exact l t
+
+  -- Function World: level 4 using apply/assumption
+  example (P Q R S T U: Type)
+    (p : P)
+    (h : P → Q)
+    (i : Q → R)
+    (j : Q → T)
+    (k : S → T)
+    (l : T → U)
+    : U := by
+      apply l
+      apply j
+      apply h
+      assumption
+
+  -- Function World: level 5
+  example (P Q : Type) : P → (Q → P) := by
+    intro p _
+    exact p  -- or `assumption`
+  -- alt: by projection
+  example (P Q : Type) : P × Q → P := by
+    intro t
+    exact t.1
+
+  -- Function World: level 6
+  example (P Q R : Type) : (P → (Q → R)) → ((P → Q) → (P → R)) := by
+    intro f g _
+    apply f
+    . assumption
+    . apply g
+      assumption
+
+  -- Function World: level 7
+  -- Contravariants of the functor Hom( ⬝ , F)
+  example (P Q F : Type) : (P → Q) → ((Q → F) → (P → F)) := by
+    intro f g _
+    apply g
+    apply f
+    assumption
+
+  -- Function World: level 8
+  -- same proof, different level
+  -- could have named the above example and instantiated `F` with `empty`
+  example (P Q : Type) : (P → Q) → ((Q → empty) → (P → empty)) := by
+    intro f g _
+    apply g
+    apply f
+    assumption
+
+  -- Function World: level 9 (a big maze)
+  example (A B C D E F G H I J K L : Type)
+    (f1 : A → B) (f2 : B → E) (f3 : E → D) (f4 : D → A) (f5 : E → F)
+    (f6 : F → C) (f7 : B → C) (f8 : F → G) (f9 : G → J) (f10 : I → J)
+    (f11 : J → I) (f12 : I → H) (f13 : E → H) (f14 : H → K) (f15 : I → L)
+     : A → L := by
+      intro
+      apply f15
+      apply f11
+      apply f9
+      apply f8
+      apply f5
+      apply f2
+      apply f1
+      assumption
+
+  end FunctionWorld
+
+
 end MyNat
