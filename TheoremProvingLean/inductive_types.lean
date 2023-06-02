@@ -698,4 +698,56 @@ theorem add_squared (a b : Nat) : (a + b) ^ two = a^two + b^two + two*a*b := by
 
   end PropositionWorld
 
+  --
+  -- Advanced Proposition World
+  --
+  -- Note: this is mostly covered in `propositions_and_proofs.lean` but in this section
+  -- most everything is done with tactics.
+  --
+  -- Note: A Lean 3 -> Lean 4 change is that `split` no longer applies to single constructor
+  -- inductive types. In Lean 4, `split` is used for breaking down matches and if-then-else terms.
+  --
+
+  -- Advanced Proposition World: level 1
+  example (P Q : Prop) (p : P) (q : Q) : P ∧ Q := by
+    constructor
+    exact p
+    exact q
+
+  -- Advanced Proposition World: level 2
+  theorem and_symm (P Q : Prop) : P ∧ Q → Q ∧ P := by
+    intro h
+    -- constructor
+    -- case left =>
+    --   exact h.right
+    -- case right =>
+    --   exact h.left
+    exact ⟨ h.right, h.left ⟩
+
+  -- Advanced Proposition World: level 3
+  theorem and_trans (P Q R : Prop) : P ∧ Q → Q ∧ R → P ∧ R := by
+    intro hpq hqr
+    exact ⟨hpq.left, hqr.right⟩
+
+  -- Advanced Proposition World: level 4
+  theorem iff_trans (P Q R : Prop) : (P ↔ Q) → (Q ↔ R) → (P ↔ R) := by
+    intro hpq hqr
+    constructor
+    case mp =>
+      intro hp
+      exact hqr.mp (hpq.mp hp)
+    case mpr =>
+      -- do this branch with `cases ... | intro` pattern
+      -- seems that using `h.mp`, `h.mpr` is much simpler
+      intro hr
+      -- take apart the Q ↔ R bi-implication
+      cases hqr with
+      | intro hqr_mp hqr_mpr =>
+        -- take apart the P ↔ Q bi-implication
+        cases hpq with
+        | intro hpq_mp hpq_mpr =>
+          apply hpq_mpr
+          apply hqr_mpr
+          exact hr
+
 end MyNat
