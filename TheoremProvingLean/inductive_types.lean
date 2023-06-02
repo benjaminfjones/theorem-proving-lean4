@@ -717,12 +717,19 @@ theorem add_squared (a b : Nat) : (a + b) ^ two = a^two + b^two + two*a*b := by
   -- Advanced Proposition World: level 2
   theorem and_symm (P Q : Prop) : P ∧ Q → Q ∧ P := by
     intro h
-    -- constructor
-    -- case left =>
-    --   exact h.right
-    -- case right =>
-    --   exact h.left
     exact ⟨ h.right, h.left ⟩
+  -- alt: intro unpacking
+  example (P Q : Prop) : P ∧ Q → Q ∧ P := by
+    intro ⟨ hp, hq ⟩
+    exact ⟨ hq, hp ⟩
+  -- alt: using constructor/cases
+  example (P Q : Prop) : P ∧ Q → Q ∧ P := by
+    intro h
+    constructor
+    case left =>
+      exact h.right
+    case right =>
+      exact h.left
 
   -- Advanced Proposition World: level 3
   theorem and_trans (P Q R : Prop) : P ∧ Q → Q ∧ R → P ∧ R := by
@@ -749,5 +756,100 @@ theorem add_squared (a b : Nat) : (a + b) ^ two = a^two + b^two + two*a*b := by
           apply hpq_mpr
           apply hqr_mpr
           exact hr
+
+  -- Advanced Proposition World: level 5
+  -- `iff_trans` proofs in different ways
+  example (P Q R : Prop) : (P ↔ Q) → (Q ↔ R) → (P ↔ R) := by
+    intro hpq hqr
+    constructor
+    case mp =>
+      intro hp
+      rw [← hqr]
+      rw [← hpq]
+      exact hp
+    case mpr =>
+      intro hr
+      rw [hpq]
+      rw [hqr]
+      exact hr
+
+  -- accessing sides of the bi-implications using `.1`, `.2`. Also could use
+  -- `.mp`, `.mpr`
+  example (P Q R : Prop) : (P ↔ Q) → (Q ↔ R) → (P ↔ R) := by
+    intro hpq hqr
+    constructor
+    case mp =>
+      intro hp
+      exact hqr.1 (hpq.1 hp)
+    case mpr =>
+      intro hr
+      exact hpq.2 (hqr.2 hr)
+
+  -- Advanced Proposition World: level 6
+  -- using `apply Or.inr` instead of the non-existent `left`/`right` tactics
+   example (P Q : Prop) : Q → (P ∨ Q) := by
+     intro hq
+     apply Or.inr
+     exact hq
+   example (P Q : Prop) : Q → (P ∨ Q) := by
+     intro
+     apply Or.inr
+     assumption
+
+  -- Advanced Proposition World: level 7
+  theorem or_symm (P Q : Prop) : P ∨ Q → Q ∨ P := by
+    intro h
+    cases h with
+    | inl hp => apply Or.inr; exact hp
+    | inr hq =>  apply Or.inl; exact hq
+  -- alt: unnamed hypotheses
+  example (P Q : Prop) : P ∨ Q → Q ∨ P := by
+    intro h
+    cases h with
+    | inl => apply Or.inr; assumption
+    | inr => apply Or.inl; assumption
+
+  -- Advanced Proposition World: level 8
+  theorem and_or_distrib_left (P Q R : Prop) : P ∧ (Q ∨ R) ↔ (P ∧ Q) ∨ (P ∧ R) := by
+    constructor
+    case mp =>
+      intro h
+      have _ : P := h.left
+      cases h.right with
+      | inl hq => apply Or.inl; constructor <;> assumption
+      | inr rq => apply Or.inr; constructor <;> assumption
+    case mpr =>
+      intro h
+      cases h with
+      | inl hpq =>
+        constructor
+        exact hpq.1
+        apply Or.inl
+        exact hpq.2
+        -- much simpler to just build the term:
+        -- exact ⟨ hpq.1, Or.inl hpq.2 ⟩
+      | inr hpr =>
+        constructor
+        exact hpr.1
+        apply Or.inr
+        exact hpr.2
+
+  -- Advanced Proposition World: level 9
+  -- Note: `exfalso` isn't builtin to vanilla Lean 4
+  theorem contra (P Q : Prop) : (P ∧ ¬ P) → Q := by
+    intro h
+    cases h with
+    | intro hp hnp => contradiction
+  -- alt: using `absurd`
+  example (P Q : Prop) : (P ∧ ¬ P) → Q := by
+    intro h
+    cases h with
+    | intro hp hnp => exact absurd hp hnp
+
+  -- Advanced Proposition World: level 10
+  -- requires classical, `em` or equivalents
+  -- Note: `tauto` and `cc` aren't builtin so we blast into cases and simplify
+  theorem contrapositive2 (P Q : Prop) : (¬ Q → ¬ P) → (P → Q) := by
+    by_cases P <;> by_cases Q <;> simp [*]
 
 end MyNat
