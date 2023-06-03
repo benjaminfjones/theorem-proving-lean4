@@ -852,4 +852,30 @@ theorem add_squared (a b : Nat) : (a + b) ^ two = a^two + b^two + two*a*b := by
   theorem contrapositive2 (P Q : Prop) : (¬ Q → ¬ P) → (P → Q) := by
     by_cases P <;> by_cases Q <;> simp [*]
 
+  section AdvancedAdditionWorld
+
+  --
+  -- Advanced Addition World
+  --
+
+  axiom succ_inj {a b : Nat} : succ a = succ b → a = b
+  axiom zero_ne_succ (a : Nat) : zero ≠ succ a
+
+  -- Advanced Addition World: level 1
+  theorem succ_inj' {a b : Nat} (hs : succ a = succ b) :  a = b := by
+    exact succ_inj hs
+  -- alt: `succ_inj` has a conclusion that unifies with the goal
+  example {a b : Nat} (hs : succ a = succ b) :  a = b := by
+    apply succ_inj
+    assumption
+  -- alt: use injectivity of inductive types
+  example {a b : Nat} (hs : succ a = succ b) :  a = b := by
+    injection hs
+
+  -- Advanced Addition World: level 2
+  theorem succ_succ_inj {a b : Nat} (hs : succ (succ a) = succ (succ b)) :  a = b := by
+    exact succ_inj (succ_inj hs)
+
+  end AdvancedAdditionWorld
+    
 end MyNat
