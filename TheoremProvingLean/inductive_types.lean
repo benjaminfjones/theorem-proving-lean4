@@ -876,6 +876,60 @@ theorem add_squared (a b : Nat) : (a + b) ^ two = a^two + b^two + two*a*b := by
   theorem succ_succ_inj {a b : Nat} (hs : succ (succ a) = succ (succ b)) :  a = b := by
     exact succ_inj (succ_inj hs)
 
+  -- Advanced Addition World: level 3
+  theorem succ_eq_succ_of_eq {a b : Nat} : a = b → succ a = succ b := by
+    intro h
+    rw [h]
+    -- rw results in `succ b = succ b` which is finished using `rfl`
+
+  -- Advanced Addition World: level 4
+  theorem succ_eq_succ_iff {a b : Nat} : succ a = succ b ↔ a = b := by
+    constructor
+    case mp =>
+      apply succ_inj
+    case mpr =>
+      exact succ_eq_succ_of_eq
+
+  -- Advanced Addition World: level 5
+  theorem add_right_cancel {a b t : Nat} : a + t = b + t → a = b := by
+    induction t with
+    | zero =>
+      rw [add_zero, add_zero]
+      intro h
+      exact h
+    | succ t' ih =>
+      rw [add_succ, add_succ]
+      intro h
+      have ihl : a + t' = b + t' := by exact (succ_inj h)
+      exact (ih ihl)
+
+  -- Advanced Addition World: level 6
+  theorem add_left_cancel (t a b : Nat) : t + a = t + b → a = b := by
+    rw [add_comm t a, add_comm t b]
+    exact add_right_cancel
+
+  -- Advanced Addition World: level 7
+  theorem add_right_cancel_iff (t a b : Nat) :  a + t = b + t ↔ a = b := by
+    constructor
+    case mp =>
+      exact add_right_cancel
+    case mpr =>
+      intro h
+      rw [h]
+
+  -- Advanced Addition World: level 8
+  theorem eq_zero_of_add_right_eq_self {a b : Nat} : a + b = a → b = 0 := by
+    intro h
+    rw [← add_zero a] at h
+    exact (add_left_cancel _ _ _ h)
+
+  -- Advanced Addition World: level 9
+  -- Note: `symmetry` tactic isn't builtin to Lean 4, but we can apply `Eq.symm` to hypotheses or goals
+  theorem succ_ne_zero (a : Nat) : succ a ≠ 0 := by
+    intro h
+    exact zero_ne_succ a (Eq.symm h)
+
   end AdvancedAdditionWorld
-    
+  variable (a b : Nat)
+  #check Eq.subst
 end MyNat
