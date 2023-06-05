@@ -929,7 +929,33 @@ theorem add_squared (a b : Nat) : (a + b) ^ two = a^two + b^two + two*a*b := by
     intro h
     exact zero_ne_succ a (Eq.symm h)
 
+  -- Advanced Addition World: level 10
+  theorem add_left_eq_zero {{a b : Nat}} (h : a + b = zero) : b = zero := by
+    cases b with
+    | zero => rfl
+    | succ d =>
+      rw [add_succ] at h
+      contradiction
+
+  -- Advanced Addition World: level 11
+  theorem add_right_eq_zero {a b : Nat} (h: a + b = zero) : a = zero := by
+    rw [add_comm] at h
+    apply add_left_eq_zero h
+
+  -- Advanced Addition World: level 12
+  theorem add_one_eq_succ (d : Nat) : d + one = succ d := by
+    rw [succ_eq_add_one]
+
+  -- Advanced Addition World: level 13
+  theorem ne_succ_self (n : Nat) : n ≠ succ n := by
+    induction n with
+    | zero => apply zero_ne_succ
+    | succ n' ih =>
+      intro (h : succ n' = succ (succ n'))
+      have hn : n' = succ n' := by exact succ_inj h
+      exact ih hn
+
+
   end AdvancedAdditionWorld
-  variable (a b : Nat)
-  #check Eq.subst
+
 end MyNat
