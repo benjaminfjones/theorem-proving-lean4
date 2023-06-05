@@ -958,4 +958,47 @@ theorem add_squared (a b : Nat) : (a + b) ^ two = a^two + b^two + two*a*b := by
 
   end AdvancedAdditionWorld
 
+  section AdvancedMultiplicationWorld
+  
+  --
+  -- Advanced Multiplcation World
+  --
+  
+  -- Advanced Multiplication World: level 1
+  theorem mul_pos (a b : Nat) : a ≠ zero → b ≠ zero → a * b ≠ zero := by
+    intro ha hb hab
+    cases a with
+    | zero => exact ha (Eq.refl zero)  -- or `contradiction`
+    | succ a' =>
+      rw [succ_mul] at hab
+      have hbz : b = 0 := add_left_eq_zero hab
+      exact hb hbz
+
+  -- Advanced Multiplication World: level 2
+  theorem eq_zero_or_eq_zero_of_mul_eq_zero (a b : Nat) (h : a * b = zero) :
+    a = 0 ∨ b = 0 :=
+    match a, b with
+    | zero, zero => by apply Or.inl; rfl
+    | zero, succ b' => by apply Or.inl; rfl
+    | succ a', zero => by apply Or.inr; rfl
+    | succ a', succ b' => by
+      have ha' : succ a' ≠ zero := by exact succ_ne_zero _
+      have hb' : succ b' ≠ zero := by exact succ_ne_zero _
+      have _ : succ a' * succ b' ≠ zero := by
+        apply mul_pos <;> assumption
+      contradiction
+
+  -- Advanced Multiplication World: level 3
+  -- Iff version of level 2
+  theorem mul_eq_zero_iff (a b : Nat): a * b = zero ↔ a = zero ∨ b = zero := by
+    constructor
+    case mp =>
+      intro
+      apply eq_zero_or_eq_zero_of_mul_eq_zero
+      assumption
+    case mpr =>
+      intro
+      | Or.inl ha => rw [ha, zero_mul]
+      | Or.inr hb => rw [hb, mul_zero]
+
 end MyNat
