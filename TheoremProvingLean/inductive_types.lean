@@ -1001,4 +1001,12 @@ theorem add_squared (a b : Nat) : (a + b) ^ two = a^two + b^two + two*a*b := by
       | Or.inl ha => rw [ha, zero_mul]
       | Or.inr hb => rw [hb, mul_zero]
 
+  -- Advanced Multiplication World: level 4
+  theorem mul_left_cancel (a b c : Nat) (ha : a ≠ 0) : a * b = a * c → b = c := by
+    admit
+
+
+
+  end AdvancedMultiplicationWorld
+
 end MyNat
