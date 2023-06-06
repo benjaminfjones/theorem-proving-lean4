@@ -1015,18 +1015,18 @@ theorem add_squared (a b : Nat) : (a + b) ^ two = a^two + b^two + two*a*b := by
     | zero =>
       intro c h
       rw [mul_zero] at h
-      have h1 : a = zero ∨ c = zero := eq_zero_or_eq_zero_of_mul_eq_zero (Eq.symm h)
-      cases h1 with
-      | inl hl => exact absurd hl ha  -- contradiction
-      | inr hr => exact Eq.symm hr
+      apply Eq.symm
+      show c = 0
+      cases eq_zero_or_eq_zero_of_mul_eq_zero (Eq.symm h) with
+      | inl ha0 => contradiction
+      | inr hc0 => assumption
     | succ b' ihb =>
       -- intro and case on `c`, we don't need a nested inductive argument
       intro
       | zero =>
         intro h
         rw [mul_zero] at h
-        have ho : a = zero ∨ succ b' = zero := eq_zero_or_eq_zero_of_mul_eq_zero h
-        cases ho with
+        cases eq_zero_or_eq_zero_of_mul_eq_zero h with
         | inl ha => contradiction
         | inr hb => assumption  -- really this is also a contradiction
       | succ c' =>
@@ -1034,7 +1034,7 @@ theorem add_squared (a b : Nat) : (a + b) ^ two = a^two + b^two + two*a*b := by
         apply succ_eq_succ_of_eq
         show b' = c'
         rw [mul_succ, mul_succ] at h
-        have habax : a*b' = a*c' := (@add_right_cancel (a*b') (a*c') a) h
+        have habax : a*b' = a*c' := add_right_cancel h
         -- use the induction hypothesis with reverted `c` being `c'`
         have ihbc : a*b' = a*c' → b' = c' := ihb c'
         apply ihbc
