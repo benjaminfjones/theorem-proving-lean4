@@ -959,11 +959,11 @@ theorem add_squared (a b : Nat) : (a + b) ^ two = a^two + b^two + two*a*b := by
   end AdvancedAdditionWorld
 
   section AdvancedMultiplicationWorld
-  
+
   --
   -- Advanced Multiplcation World
   --
-  
+
   -- Advanced Multiplication World: level 1
   theorem mul_pos (a b : Nat) : a ≠ zero → b ≠ zero → a * b ≠ zero := by
     intro ha hb hab
@@ -975,7 +975,7 @@ theorem add_squared (a b : Nat) : (a + b) ^ two = a^two + b^two + two*a*b := by
       exact hb hbz
 
   -- Advanced Multiplication World: level 2
-  theorem eq_zero_or_eq_zero_of_mul_eq_zero (a b : Nat) (h : a * b = zero) :
+  theorem eq_zero_or_eq_zero_of_mul_eq_zero {a b : Nat} (h : a * b = zero) :
     a = 0 ∨ b = 0 :=
     match a, b with
     | zero, zero => by apply Or.inl; rfl
@@ -1002,10 +1002,43 @@ theorem add_squared (a b : Nat) : (a + b) ^ two = a^two + b^two + two*a*b := by
       | Or.inr hb => rw [hb, mul_zero]
 
   -- Advanced Multiplication World: level 4
-  theorem mul_left_cancel (a b c : Nat) (ha : a ≠ 0) : a * b = a * c → b = c := by
-    admit
-
-
+  --
+  -- The proof below tries to follow the math proof by induction on both `b` and `c`
+  -- where in the nested inductive step we make a sequence of deductions:
+  -- 1. `a * (b'+1) = a * (c'+1)`
+  -- 2. `a * b' = a * c'` (canel `a` on right)
+  -- 3. `b' = c'` (induction hypothesis)
+  --
+  theorem mul_left_cancel (a b c : Nat) (ha : a ≠ zero) : a * b = a * c → b = c := by
+    revert c
+    induction b with
+    | zero =>
+      intro c h
+      rw [mul_zero] at h
+      have h1 : a = zero ∨ c = zero := eq_zero_or_eq_zero_of_mul_eq_zero (Eq.symm h)
+      cases h1 with
+      | inl hl => exact absurd hl ha  -- contradiction
+      | inr hr => exact Eq.symm hr
+    | succ b' ihb =>
+      -- intro and case on `c`, we don't need a nested inductive argument
+      intro
+      | zero =>
+        intro h
+        rw [mul_zero] at h
+        have ho : a = zero ∨ succ b' = zero := eq_zero_or_eq_zero_of_mul_eq_zero h
+        cases ho with
+        | inl ha => contradiction
+        | inr hb => assumption  -- really this is also a contradiction
+      | succ c' =>
+        intro h
+        apply succ_eq_succ_of_eq
+        show b' = c'
+        rw [mul_succ, mul_succ] at h
+        have habax : a*b' = a*c' := (@add_right_cancel (a*b') (a*c') a) h
+        -- use the induction hypothesis with reverted `c` being `c'`
+        have ihbc : a*b' = a*c' → b' = c' := ihb c'
+        apply ihbc
+        exact habax
 
   end AdvancedMultiplicationWorld
 
