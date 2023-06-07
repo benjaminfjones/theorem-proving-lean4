@@ -1042,4 +1042,58 @@ theorem add_squared (a b : Nat) : (a + b) ^ two = a^two + b^two + two*a*b := by
 
   end AdvancedMultiplicationWorld
 
+  section InequalityWorld
+
+  --
+  -- Inequality World
+  --
+
+  def le (a b : Nat) : Prop := ∃ (c : Nat), b = a + c
+
+  instance : LE Nat where
+    le := le
+
+  example : zero ≤ zero  := Exists.intro zero (show zero = zero + zero by rfl)
+
+  -- Inequality World: level 1
+  theorem one_add_le_self (x : Nat) : x ≤ x + one := by
+    exists one
+  -- alt: with constructor
+  example (x : Nat) : x ≤ x + one := by
+    constructor
+    case w => exact one
+    case h => rfl
+
+  -- Inequality World: level 2
+  theorem le_refl (x : Nat) : x ≤ x := by
+    exists zero
+
+  -- Note: `refl` attribute doesn't seem to be builtin, possibly it's in mathlib
+  -- attribute [refl] le_refl
+
+  -- Inequality World: level 3
+  theorem le_succ (a b : Nat) : a ≤ b → a ≤ (succ b) := by
+    intro
+    | ⟨ c, hc ⟩ =>
+      exists succ c
+      repeat (rw [succ_eq_add_one])
+      rw [← add_assoc, hc]
+
+  -- Inequality World: level 4
+  theorem zero_le (a : Nat) : zero ≤ a := by
+    exists a
+    rw [zero_add]
+
+  -- Inequality World: level 5
+  theorem le_trans (a b c : Nat) (hab : a ≤ b) (hbc : b ≤ c) : a ≤ c := by
+    cases hab with
+    | intro d hd =>
+      cases hbc with
+      | intro e he =>
+        exists d + e
+        rw [he, hd]
+        simp
+
+  end InequalityWorld
+
 end MyNat
