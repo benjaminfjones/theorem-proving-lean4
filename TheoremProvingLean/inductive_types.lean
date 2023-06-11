@@ -1085,7 +1085,7 @@ theorem add_squared (a b : Nat) : (a + b) ^ two = a^two + b^two + two*a*b := by
     rw [zero_add]
 
   -- Inequality World: level 5
-  theorem le_trans (a b c : Nat) (hab : a ≤ b) (hbc : b ≤ c) : a ≤ c := by
+  theorem le_trans {a b c : Nat} (hab : a ≤ b) (hbc : b ≤ c) : a ≤ c := by
     cases hab with
     | intro d hd =>
       cases hbc with
@@ -1173,7 +1173,7 @@ theorem add_squared (a b : Nat) : (a + b) ^ two = a^two + b^two + two*a*b := by
       exact (succ_inj pw)
 
   -- Inequality World: level 13
-  theorem not_succ_le_self (a : Nat) : ¬ (succ a ≤ a) := by
+  theorem not_succ_le_self {a : Nat} : ¬ (succ a ≤ a) := by
     intro h
     cases h with
     | intro w pw =>
@@ -1188,6 +1188,54 @@ theorem add_squared (a b : Nat) : (a + b) ^ two = a^two + b^two + two*a*b := by
     have _ : a + t ≤ b + t := add_le_add_right h t
     rw [add_comm t a, add_comm t b]
     assumption
+
+  -- Definition of strict inequality
+  def lt (a b : Nat) : Prop := a ≤ b ∧ ¬(b ≤ a)
+
+  -- Enables `<` notation
+  instance : LT Nat where
+    lt := lt
+
+  -- alternate definition, prooved equivalent to `lt` in level 17
+  def lt' (a b : Nat) : Prop := succ a ≤ b
+
+  -- Inequality World: level 15
+  -- TODO: figure out how to unfold definitions of `lt`, `lt'` in the theorem
+  theorem lt_aux_one (a b : Nat) : a ≤ b ∧ ¬(b ≤ a) → succ a ≤ b := by
+    intro h
+    let ⟨⟨w, pw⟩, hc⟩ := h
+    cases w with
+    | zero =>
+      rw [add_zero] at pw
+      have _ : b ≤ a := pw ▸ (le_refl b)  -- subst pw into b ≤ b
+      contradiction
+    | succ w' =>
+      exists w'
+      rw [pw, add_succ, succ_add]
+
+  -- Inequality World: level 16
+  theorem lt_aux_two (a b : Nat) : succ a ≤ b → a ≤ b ∧ ¬(b ≤ a) := by
+    intro
+    | ⟨w , pw⟩  =>
+      constructor
+      case left =>
+        exists (w + one)
+        rw [pw, succ_eq_add_one]
+        simp
+      case right =>
+        intro
+        have _ : succ a ≤ b := by exists w
+        have _ : succ a ≤ a := by apply (@le_trans (succ a) b) <;> assumption
+        apply (@not_succ_le_self a)
+        assumption
+
+  -- Inequality World: level 17
+  theorem lt_iff_succ_le (a b : Nat) : a < b ↔ succ a ≤ b := by
+    constructor
+    case mp => exact lt_aux_one _ _
+    case mpr => exact lt_aux_two _ _
+
+  -- Note: `Nat` now has the structure `ordered_cancel_comm_monoid`
 
   end InequalityWorld
 
