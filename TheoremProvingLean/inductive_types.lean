@@ -1094,6 +1094,101 @@ theorem add_squared (a b : Nat) : (a + b) ^ two = a^two + b^two + two*a*b := by
         rw [he, hd]
         simp
 
+  -- Inequality World: level 6
+  theorem le_antisymm (a b : Nat) (hab : a ≤ b) (hba : b ≤ a) : a = b := by
+    cases hab with
+    | intro w hw =>
+      cases hba with
+        | intro z hz =>
+          rw [hz] at hw
+          have hw1 : b + z + w = b := Eq.symm hw
+          rw [add_assoc] at hw1
+          have hzw : z + w = 0 := eq_zero_of_add_right_eq_self hw1
+          have hzz : z = 0 := add_right_eq_zero hzw
+          rw [hzz] at hz
+          assumption
+
+  -- Inequality World: level 7
+  theorem le_zero (a : Nat) (h : a ≤ zero) : a = 0 := by
+    cases h with
+    | intro w pw =>
+      exact add_right_eq_zero (Eq.symm pw)
+
+  -- Inequality World: level 8
+  theorem succ_le_succ (a b : Nat) (h : a ≤ b) : succ a ≤ succ b := by
+    cases h with
+    | intro w pw =>
+      exists w
+      rw [succ_add]
+      exact (succ_eq_succ_iff.mpr pw)
+
+  -- Inequality World: level 9
+  theorem le_total (a b : Nat) : a ≤ b ∨ b ≤ a := by
+    induction a with
+    | zero => apply Or.inl; exact (zero_le _)
+    | succ a' ih =>
+      cases ih with
+      | inl h =>
+        -- a' ≤ b, so succ a' could be ≤ b or > b
+        cases h with
+        | intro w pw =>
+          cases w with
+          | zero =>
+            apply Or.inr
+            exists one
+            rw [add_zero] at pw
+            rw [← succ_eq_add_one]
+            exact succ_eq_succ_iff.mpr (Eq.symm pw)
+          | succ w' =>
+            apply Or.inl
+            exists w'
+            rw [add_succ] at pw
+            rw [pw, succ_add]
+      | inr h =>
+        -- b ≤ a' => b ≤ succ a'
+        apply Or.inr
+        apply le_succ
+        assumption
+
+  -- Inequality World: level 10
+  theorem le_succ_self (a : Nat) : a ≤ succ a := by
+    exists one
+
+  -- Inequality World: level 11
+  theorem add_le_add_right {a b : Nat} : a ≤ b → ∀ t, (a + t) ≤ (b + t) := by
+    intro h t
+    cases h with
+    | intro w pw =>
+      exists w
+      rw [pw]
+      simp
+
+  -- Inequality World: level 12
+  theorem le_of_succ_le_succ (a b : Nat) : succ a ≤ succ b → a ≤ b := by
+    intro h
+    cases h with
+    | intro w pw =>
+      exists w
+      rw [succ_add] at pw
+      exact (succ_inj pw)
+
+  -- Inequality World: level 13
+  theorem not_succ_le_self (a : Nat) : ¬ (succ a ≤ a) := by
+    intro h
+    cases h with
+    | intro w pw =>
+      rw [succ_eq_add_one, add_comm_right, add_assoc] at pw
+      have hw : w + one = zero := eq_zero_of_add_right_eq_self (Eq.symm pw)
+      have _ : one = zero := add_left_eq_zero hw
+      contradiction
+
+  -- Inequality World: level 14
+  theorem add_le_add_left {a b : Nat} (h : a ≤ b) (t : Nat) :
+    t + a ≤ t + b := by
+    have _ : a + t ≤ b + t := add_le_add_right h t
+    rw [add_comm t a, add_comm t b]
+    assumption
+
   end InequalityWorld
 
 end MyNat
