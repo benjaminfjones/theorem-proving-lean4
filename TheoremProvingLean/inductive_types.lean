@@ -124,13 +124,13 @@ theorem comp_with_all_none {α β γ : Type} (f : β → Option γ) (x : α)
     simp [comp_partial, all_none]
 
 -- Version of `comp_all_none_with` using function extensionality
-theorem comp_all_none_with_eq_all_none {α β γ : Type} (g : α → Option β) (x : α)
+theorem comp_all_none_with_eq_all_none {α β γ : Type} (g : α → Option β) (_ : α)
   : comp_partial (@all_none β γ) g = (@all_none α γ) := by
   funext
   apply comp_all_none_with
 
 -- Version of `comp_with_all_none` using function extensionality
-theorem comp_with_all_none_eq_all_none {α β γ : Type} (f : β → Option γ) (x : α)
+theorem comp_with_all_none_eq_all_none {α β γ : Type} (f : β → Option γ) (_ : α)
   : comp_partial f (@all_none α β) = (@all_none α γ) := by
     funext
     apply comp_with_all_none
@@ -538,6 +538,8 @@ theorem add_squared (a b : Nat) : (a + b) ^ two = a^two + b^two + two*a*b := by
 
   section FunctionWorld
 
+  set_option linter.unusedVariables false
+
   -- Function World: level 1
   example (P Q : Type) (p : P) (h : P → Q) : Q := h p
   example (P Q : Type) (p : P) (h : P → Q) : Q := by exact h p
@@ -630,6 +632,8 @@ theorem add_squared (a b : Nat) : (a + b) ^ two = a^two + b^two + two*a*b := by
   end FunctionWorld
 
   section PropositionWorld
+
+  set_option linter.unusedVariables false
 
   -- Proposition World: level 1
   example (P Q : Prop) (p : P) (h : P → Q) : Q := by exact h p
@@ -975,7 +979,7 @@ theorem add_squared (a b : Nat) : (a + b) ^ two = a^two + b^two + two*a*b := by
       exact hb hbz
 
   -- Advanced Multiplication World: level 2
-  theorem eq_zero_or_eq_zero_of_mul_eq_zero {a b : Nat} (h : a * b = zero) :
+  theorem eq_zero_or_eq_zero_of_mul_eq_zero {a b : Nat} (_ : a * b = zero) :
     a = 0 ∨ b = 0 :=
     match a, b with
     | zero, zero => by apply Or.inl; rfl
