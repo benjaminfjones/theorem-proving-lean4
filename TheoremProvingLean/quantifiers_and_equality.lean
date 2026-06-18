@@ -309,7 +309,7 @@ variable (r : Prop)
 
   example : (∃ x : α, r) → r :=
     fun h => match h with
-      | ⟨ w, hr ⟩ => hr
+      | ⟨ _w, hr ⟩ => hr
 
   example (a : α) : r → (∃ x : α, r) :=
     fun hr => ⟨a, hr⟩

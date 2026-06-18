@@ -394,7 +394,7 @@ example (a b : Nat) : (succ a) * b = a * b + b := by
     rw [mul_zero, mul_zero, add_zero]
   | succ b' ih =>
     rw [succ_eq_add_one b', succ_eq_add_one a]
-    simp [mul_add, mul_succ, one_eq_succ_zero, add_succ]
+    simp [mul_succ, one_eq_succ_zero, add_succ]
     rw [ih]
     rw [succ_add]
     -- only need additive assoc, comm, and injection from here
