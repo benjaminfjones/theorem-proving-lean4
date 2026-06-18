@@ -277,6 +277,9 @@ end display_implicit_args
 -- Existential Quantifiers
 --
 
+-- since we know there is an x satisfying p x, we can give it a name, say, w.
+-- If q does not mention w, then showing that q follows from p w is tantamount
+-- to showing that q follows from the existence of any such x
 section exists_elim_example
   variable (α : Type) (p q : α → Prop)
   example (h : ∃ x, p x ∧ q x) : ∃ x, q x ∧ p x :=
@@ -301,17 +304,37 @@ section exists_elim_example
     fun ⟨w, hpw, hqw⟩ => ⟨w, hqw, hpw⟩
 end exists_elim_example
 
+def IsEven (a : Nat) := ∃ b : Nat, a = 2 * b
+
+theorem even_of_evens_sum (a b : Nat) (ha : IsEven a) (hb : IsEven b) : IsEven (a + b) :=
+  let ⟨ x, ha2x ⟩ := ha
+  let ⟨ y, hb2y ⟩ := hb
+  -- ⟨ x + y, by grind ⟩  -- works
+  show IsEven (a + b) from
+  ⟨ x + y,
+    calc a + b
+      _ = (2*x) + (2*y) := by rw [ha2x, hb2y]
+      _ = 2*(x + y) := by rw [Nat.left_distrib]⟩
+
+-- same but shorter using match pairs
+example (h1 : IsEven a) (h2 : IsEven b) :
+    IsEven (a + b) :=
+  match h1, h2 with
+  | ⟨w1, hw1⟩, ⟨w2, hw2⟩ =>
+    ⟨w1 + w2, by rw [hw1, hw2, Nat.mul_add]⟩
+
+
 section existential_exercises
 open Classical
 
 variable (α : Type) (p q : α → Prop)
 variable (r : Prop)
 
-  example : (∃ x : α, r) → r :=
+  example : (∃ _x : α, r) → r :=
     fun h => match h with
       | ⟨ _w, hr ⟩ => hr
 
-  example (a : α) : r → (∃ x : α, r) :=
+  example (a : α) : r → (∃ _x : α, r) :=
     fun hr => ⟨a, hr⟩
 
   example : (∃ x, p x ∧ r) ↔ (∃ x, p x) ∧ r :=
