@@ -44,10 +44,9 @@ section universal_exercises_1
 
   example : (∀ x, p x → q x) → (∀ x, p x) → (∀ x, q x) :=
     fun (hpiq : ∀ x, p x → q x) (hfap : ∀ x, p x) =>
-    show (∀ x, q x) from
       fun x =>
-        have (f : p x → q x) := hpiq x
-        have (hp : p x) := hfap x
+        have f : p x → q x := hpiq x
+        have hp : p x := hfap x
         show q x from f hp
 
   example : (∀ x, p x) ∨ (∀ x, q x) → ∀ x, p x ∨ q x :=
@@ -63,7 +62,7 @@ section universal_exercises_2
   variable (r : Prop)
 
   -- Given an inhabited type α, If you know a proposition holds for all values of
-  -- α, then you can conclude the propsition hold in general.
+  -- α, then you can conclude the proposition hold in general.
   example : α → ((∀ _ : α, r) ↔ r) :=
     fun y =>
       Iff.intro
@@ -88,7 +87,7 @@ section universal_exercises_2
       )
       (fun h : (∀ x, p x) ∨ r =>
         byCases  -- Proof by cases over `r`
-          (fun hr : r => fun x => Or.inr hr)
+          (fun hr : r => fun _x => Or.inr hr)
           (fun hnr : ¬r =>
             fun x =>
               have hp : p x :=
@@ -169,9 +168,9 @@ end manual_eq_proofs
 
 section see_the_motive
   set_option pp.explicit true  -- display implicit arguments
-  variable (α : Type) (a b c d : α) (p : α → Prop)
-  variable (hab : a = b) (h : p a)
-  theorem a_sub : p b := @Eq.subst α _ a b hab h
+  variable (α : Type)
+  variable (p : α → Prop)
+  theorem a_sub (a : α) (h : p a) (hab : a = b) : p b := @Eq.subst α _ a b hab h
 
   -- The synthesized motive is now visible with the pretty printer
   -- setting `pp.explicit true`:
@@ -185,7 +184,7 @@ section see_the_motive
 
 end see_the_motive
 
--- substitue equal term into a predicate's argument
+-- substitute equal term into a predicate's argument
 example (α : Type) (a b : α) (p : α → Prop)
         (h1 : a = b) (h2 : p a) : p b :=
   Eq.subst h1 h2
@@ -210,7 +209,16 @@ section calc_proofs
   variable (h3 : c = d)
   variable (h4 : e = 1 + d)
 
-  theorem T : a = e :=
+  example : c = d := h3
+
+  variable (a b c d e : Nat)
+
+  theorem T
+      (h1 : a = b)
+      (h2 : b = c + 1)
+      (h3 : c = d)
+      (h4 : e = 1 + d) :
+      a = e :=
     calc
       a = b      := h1
       _ = c + 1  := h2
@@ -218,14 +226,25 @@ section calc_proofs
       _ = 1 + d  := Nat.add_comm d 1
       _ = e      := Eq.symm h4
 
-  theorem T2 : a = e :=
+
+  theorem T2
+      (h1 : a = b)
+      (h2 : b = c + 1)
+      (h3 : c = d)
+      (h4 : e = 1 + d) :
+    a = e :=
     calc
       a = b := h1
       _ = c + 1 := h2
       _ = d + 1 := by rw [h3]
       _ = e := by rw [Nat.add_comm, h4]
 
-  theorem T3 : a = e := by simp [h1, h2, h3, h4, Nat.add_comm]
+  theorem T3
+      (h1 : a = b)
+      (h2 : b = c + 1)
+      (h3 : c = d)
+      (h4 : e = 1 + d) :
+    a = e := by simp [h1, h2, h3, h4, Nat.add_comm]
 
   example (x y : Nat) : (x + y) * (x + y) = x * x + y * x + x * y + y * y :=
   calc
@@ -241,12 +260,11 @@ end calc_proofs
 
 section display_implicit_args
   variable (g : Nat → Nat → Nat)
-  variable (hg : g 0 0 = 0)
 
-  theorem gex1 : ∃ x, g x x = x := ⟨0, hg⟩
-  theorem gex2 : ∃ x, g x 0 = x := ⟨0, hg⟩
-  theorem gex3 : ∃ x, g 0 0 = x := ⟨0, hg⟩
-  theorem gex4 : ∃ x, g x x = 0 := ⟨0, hg⟩
+  theorem gex1 (hg : g 0 0 = 0) : ∃ x, g x x = x := ⟨0, hg⟩
+  theorem gex2 (hg : g 0 0 = 0) : ∃ x, g x 0 = x := ⟨0, hg⟩
+  theorem gex3 (hg : g 0 0 = 0) : ∃ x, g 0 0 = x := ⟨0, hg⟩
+  theorem gex4 (hg : g 0 0 = 0) : ∃ x, g x x = 0 := ⟨0, hg⟩
 
   set_option pp.explicit true  -- display implicit arguments
   #print gex1

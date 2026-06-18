@@ -448,7 +448,7 @@ instance : Pow Nat Nat where
 -- "Axioms"
 theorem pow_zero (m : Nat) : m ^ zero = one := rfl
 -- with literals
-theorem pow_zero' (m : Nat) : m ^ 0 = 1 := rfl
+theorem pow_zero' (m : Nat) : m ^ (0 : Nat) = 1 := rfl
 theorem pow_succ (m n : Nat) : m ^ succ n = m ^ n * m := rfl
 
 -- Power World: level 1

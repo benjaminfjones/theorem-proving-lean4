@@ -75,7 +75,7 @@ section simplify_examples
     simp (config := { arith := true })
   -- same thing; shorthand
   example : 0 < 1 + x ∧ x + y + 2 ≥ y + 1 := by
-    simp_arith
+    simp +arith
 
 end simplify_examples
 
