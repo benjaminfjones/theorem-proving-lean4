@@ -314,7 +314,8 @@ theorem even_of_evens_sum (a b : Nat) (ha : IsEven a) (hb : IsEven b) : IsEven (
   ⟨ x + y,
     calc a + b
       _ = (2*x) + (2*y) := by rw [ha2x, hb2y]
-      _ = 2*(x + y) := by rw [Nat.left_distrib]⟩
+      _ = 2*(x + y) := by rw [Nat.left_distrib]
+  ⟩
 
 -- same but shorter using match pairs
 example (h1 : IsEven a) (h2 : IsEven b) :
@@ -327,8 +328,8 @@ example (h1 : IsEven a) (h2 : IsEven b) :
 section existential_exercises
 open Classical
 
-variable (α : Type) (p q : α → Prop)
-variable (r : Prop)
+  variable (α : Type) (p q : α → Prop)
+  variable (r : Prop)
 
   example : (∃ _x : α, r) → r :=
     fun h => match h with
@@ -390,8 +391,28 @@ variable (r : Prop)
             show False from h this
       )
 
--- example : (¬ ∃ x, p x) ↔ (∀ x, ¬ p x) := sorry
--- example : (¬ ∀ x, p x) ↔ (∃ x, ¬ p x) := sorry
+  example : (¬ ∃ x, p x) ↔ (∀ x, ¬ p x) :=
+    Iff.intro
+      (fun hne => fun x => fun px =>
+        have h : ∃ z, p z := ⟨ x, px ⟩
+        absurd h hne)
+      (fun hfn => fun ⟨ z, pz ⟩ => 
+        have h : ¬ p z := hfn z
+        absurd pz h)
+
+  example : (¬ ∀ x, p x) ↔ (∃ x, ¬ p x) :=
+    Iff.intro
+      (fun hnf =>
+        sorry
+        -- Exists.intro _ _
+      )
+      (fun ⟨ w, hnpw ⟩ => fun h =>
+        have hpw : p w := h w
+        show False from hnpw hpw)
+
+
+
+
 --
 -- example : (∀ x, p x → r) ↔ (∃ x, p x) → r := sorry
 -- example (a : α) : (∃ x, p x → r) ↔ (∀ x, p x) → r := sorry
