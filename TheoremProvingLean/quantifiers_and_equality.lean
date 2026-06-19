@@ -410,8 +410,17 @@ open Classical
         have hpw : p w := h w
         show False from hnpw hpw)
 
+  section shaving
+    open Classical
+    variable (men : Type) (barber : men)
+    variable (shaves : men → men → Prop)
 
-
+    example (h : ∀ x : men, shaves barber x ↔ ¬ shaves x x) : False :=
+      have hb := h barber
+      have := byCases (fun x => hb.mp x) (fun x => x)
+      have : shaves barber barber := hb.mpr this
+      by contradiction
+  end shaving
 
 --
 -- example : (∀ x, p x → r) ↔ (∃ x, p x) → r := sorry
