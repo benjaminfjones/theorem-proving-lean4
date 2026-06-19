@@ -1,3 +1,31 @@
+section inaccessible_names
+  -- unhygenic tactic keyword
+  example : ∀ a b c : Nat, a = b → a = c → c = b := by unhygienic
+    intros
+    apply Eq.trans
+    apply Eq.symm
+    exact a_2
+    exact a_1
+
+  -- rename_i tactic to give names to inaccessible terms
+  example : ∀ a b c d : Nat, a = b → a = d → a = c → c = b := by
+    intros
+    rename_i h1 _ h2
+    apply Eq.trans
+    apply Eq.symm
+    exact h2
+    exact h1
+
+end inaccessible_names
+
+section revert
+  example (x y : Nat) (h : x = y) : y = x := by
+    revert x  -- beings h along with into the goal
+    intros
+    apply Eq.symm
+    assumption
+end revert
+
 --
 -- Combinations of Tactics
 --
