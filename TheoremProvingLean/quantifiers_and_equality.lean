@@ -422,9 +422,55 @@ open Classical
       by contradiction
   end shaving
 
---
--- example : (∀ x, p x → r) ↔ (∃ x, p x) → r := sorry
--- example (a : α) : (∃ x, p x → r) ↔ (∀ x, p x) → r := sorry
--- example (a : α) : (∃ x, r → p x) ↔ (r → ∃ x, p x) := sorry
+-- no intuition for what this one means
+example : (∀ x, p x → r) ↔ (∃ x, p x) → r :=
+  Iff.intro
+    (fun fpr =>
+      fun ⟨ w, hpw ⟩ =>
+      have := fpr w hpw
+      ‹r›)
+    (fun ep_to_r =>
+     fun x =>
+     fun hpx =>
+     have : ∃ x, p x := ⟨ x, hpx ⟩
+     have := ep_to_r this
+     ‹r›)
+
+example (a : α) : (∃ x, p x → r) ↔ (∀ x, p x) → r :=
+  Iff.intro
+    (fun ⟨ w, hpw ⟩ => fun f =>
+     have := f w
+     show r from hpw this)
+    (fun h1 : (∀ x, p x) → r =>
+     show ∃ x, p x → r from
+       byCases
+         (fun hap : ∀ x, p x => ⟨a, λ _ => h1 hap⟩)
+         (fun hnap : ¬ ∀ x, p x =>
+          byContradiction
+            (fun hnex : ¬ ∃ x, p x → r =>
+              have hap : ∀ x, p x :=
+                fun x =>
+                byContradiction
+                  (fun hnp : ¬ p x =>
+                    have hex : ∃ x, p x → r := ⟨x, (fun hp => absurd hp hnp)⟩
+                    show False from hnex hex)
+              show False from hnap hap)))
+
+example (a : α) : (∃ x, r → p x) ↔ (r → ∃ x, p x) :=
+  Iff.intro
+    (fun ⟨ w, hr_to_pw ⟩ =>
+     fun hr =>
+     have := hr_to_pw hr
+     ⟨ w, this ⟩)
+    (fun hr_to_ex =>
+      show ∃ x, r → p x from
+        byCases
+          (fun (h : ∀ x, p x) =>
+            have := h a
+            ⟨ a, λ _ => this ⟩)
+          (fun (nhr : ¬ ∀ x, p x) =>
+            byContradiction
+              fun hnfa =>
+                sorry))
 
 end existential_exercises
