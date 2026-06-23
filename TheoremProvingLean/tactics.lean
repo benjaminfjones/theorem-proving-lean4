@@ -26,6 +26,17 @@ section revert
     assumption
 end revert
 
+-- generalize an expression replacing it by a fresh variable
+example : 3 = 3 := by
+  generalize 3 = x
+  rfl
+
+example : 2 + 3 = 5 := by
+  generalize h : 3 = x
+  rw [← h]
+
+
+
 --
 -- Combinations of Tactics
 --
@@ -53,6 +64,72 @@ example (f : Nat → Nat) (a : Nat) (h : a + 0 = 0) : f a = f 0 := by
   -- h : a = 0
   -- goal : f a = f 0
   rw [h]
+
+-- rewriting data: Tuples α n := lists of length n
+def Tuple (α : Type) (n : Nat) := { as : List α // as.length = n }
+
+example (α : Type) (n : Nat) (h : n = 0) (t : Tuple α n) : Tuple α 0 := by
+  rw [h] at t
+  exact t
+
+--
+-- Cases
+--
+
+example (p q : Nat → Prop) : (∃ x, p x) → ∃ x, p x ∨ q x := by
+  intro h
+  cases h with
+  | intro w hpw =>
+    constructor
+    apply Or.inl
+    exact hpw  -- dispatches both the proof goal and unifies the Nat goal with `w` at once
+
+-- using the `exists` tactic
+example (p q : Nat → Prop) : (∃ x, p x ∧ q x) → ∃ x, q x ∧ p x := by
+  intro h
+  cases h with
+  | intro w hpw =>
+    cases hpw with
+    | intro px qx =>
+      -- unifes the metavariable with `w` and constructs fills the proof hole automatically
+      exists w  -- notation for `refine w; try trivial`
+      -- exact Exists.intro w ⟨ qx, px ⟩
+
+-- cases and tactics with product data
+def swap_pair (α β : Type) : α × β → β × α := by
+  intro p
+  cases p with
+  | mk fst snd =>
+    constructor <;> assumption
+
+-- cases and tactics with sum data
+def swap_sum (α β : Type) : α ⊕ β → β ⊕ α := by
+  intro sum
+  cases sum with
+  | inl x => apply Sum.inr; assumption
+  | inr x => apply Sum.inl; assumption
+
+-- cases on Nat; induction example
+open Nat
+example (P : Nat → Prop) (h₀ : P 0) (h₁ : ∀ n, P (succ n)) (m : Nat) : P m := by
+  cases m with
+  | zero    => assumption
+  | succ m' => apply h₁
+
+-- using `match` like cases, combined with `intro` -> intro match combo
+example (p q r : Prop) : p ∧ (q ∨ r) ↔ (p ∧ q) ∨ (p ∧ r) := by
+  apply Iff.intro
+  . intro
+    | ⟨hp, Or.inl hq⟩ =>
+      apply Or.inl; constructor <;> assumption
+    | ⟨hp, Or.inr hr⟩ =>
+      apply Or.inr; constructor <;> assumption
+  . intro
+    | Or.inl ⟨hp, hq⟩ =>
+      constructor; assumption; apply Or.inl; assumption
+    | Or.inr ⟨hp, hr⟩ =>
+      constructor; assumption; apply Or.inr; assumption
+
 
 --
 -- Simplify
