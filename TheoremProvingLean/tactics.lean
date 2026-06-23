@@ -184,6 +184,29 @@ section simplify_examples
 
 end simplify_examples
 
+  section split_examples
+  def f (x y z : Nat) : Nat :=
+    match x, y, z with
+    | 5, _, _ => y
+    | _, 5, _ => y
+    | _, _, 5 => y
+    | _, _, _ => 1
+  
+  example (x y z : Nat) : x ≠ 5 → y ≠ 5 → z ≠ 5 → z = w → f x y w = 1 := by
+    intros
+    unfold f
+    -- simp [f]
+    split
+    . contradiction
+    . contradiction
+    . contradiction
+    . rfl
+
+  example (x y z : Nat) : x ≠ 5 → y ≠ 5 → z ≠ 5 → z = w → f x y w = 1 := by
+    intros; unfold f; split <;> (first | contradiction | rfl)
+
+end split_examples
+
 --
 -- Exercises
 --
