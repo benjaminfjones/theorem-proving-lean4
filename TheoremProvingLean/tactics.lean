@@ -191,7 +191,7 @@ end simplify_examples
     | _, 5, _ => y
     | _, _, 5 => y
     | _, _, _ => 1
-  
+
   example (x y z : Nat) : x ≠ 5 → y ≠ 5 → z ≠ 5 → z = w → f x y w = 1 := by
     intros
     unfold f
@@ -205,7 +205,51 @@ end simplify_examples
   example (x y z : Nat) : x ≠ 5 → y ≠ 5 → z ≠ 5 → z = w → f x y w = 1 := by
     intros; unfold f; split <;> (first | contradiction | rfl)
 
+  def g (xs ys : List Nat) :=
+    match xs, ys with
+    | [a, b], _      => a + b + 1  -- first list has exactly 2 elements
+    | _     , [b, _] => b + 1 -- otherwise, if second list has exactly 2 elements
+    | _     , _      => 1     -- else
+
+  example (xs ys : List Nat) (h : g xs ys = 0) : False := by
+    unfold g at h
+    split at h
+    <;> simp +arith at h
+
 end split_examples
+
+section extensible_tactics
+  /- ---------------------------------------------------------------------- -/
+  /- Use "syntax" extension and macros to define a new tactic. The tactic
+     interpreter tries all versions of the macro until one of them succeeds !?
+  -/
+  syntax "triv" : tactic
+
+  macro_rules
+    | `(tactic|triv) => `(tactic|assumption)
+
+  example (p : Prop) (h : p) : p := by
+    triv
+
+  -- we can't yet prove this using `triv`
+  -- example (α : Type) (x : α) : x = x := by
+  --   triv
+
+  macro_rules
+    | `(tactic|triv) => `(tactic|rfl)
+
+  -- yay
+  example (α : Type) (x : α) : x = x := by
+    triv
+
+  -- We now add a (recursive) extension that helps break apart conjunctions in goals
+  macro_rules | `(tactic| triv) => `(tactic| apply And.intro <;> triv)
+
+  example (α : Type) (p : Prop) (x : α) (h : p) : x = x ∧ p := by
+    triv
+
+end extensible_tactics
+
 
 --
 -- Exercises
