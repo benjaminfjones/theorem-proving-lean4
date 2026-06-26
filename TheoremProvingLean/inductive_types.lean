@@ -1247,6 +1247,8 @@ end MyNat
 
 namespace MyList
 
+variable (α : Type)
+
 inductive List (α : Type) where
   | nil : List α
   | cons : α → List α → List α
@@ -1255,6 +1257,8 @@ def length {α : Type} (xs : List α) : Nat :=
   match xs with
   | .nil => 0
   | .cons _x rest => 1 + length rest
+
+theorem length_nil : length (List.nil : List α) = 0 := by rfl
 
 theorem length_cons {α : Type} (x : α) (xs : List α) : length (List.cons x xs)  = 1 + length xs := by
   rfl
@@ -1302,6 +1306,20 @@ def append {α : Type} (xs ys : List α) : List α :=
   match xs with
   | .nil => ys
   | .cons x rest => .cons x (append rest ys)
+
+theorem append_nil (xs : List α) : append List.nil xs = xs := by rfl
+
+theorem append_cons (x : α) (rest ys : List α) : append (List.cons x rest) ys = List.cons x (append rest ys) := by rfl
+
+theorem length_append (xs ys : List α) : length (append xs ys) = length xs + length ys := by
+  cases xs with
+  | nil => rw [append_nil, length_nil, Nat.zero_add]
+  | cons x rest =>
+    rw [append_cons]
+    repeat rw [length_cons]
+    rw [length_append rest ys]
+    show 1 + (length rest + length ys) = 1 + length rest + length ys
+    grind
 
 def reverse {α : Type} (xs : List α) : List α :=
   match xs with
