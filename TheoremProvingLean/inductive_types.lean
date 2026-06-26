@@ -1244,3 +1244,78 @@ theorem add_squared (a b : Nat) : (a + b) ^ two = a^two + b^two + two*a*b := by
   end InequalityWorld
 
 end MyNat
+
+namespace MyList
+
+inductive List (α : Type) where
+  | nil : List α
+  | cons : α → List α → List α
+
+def length {α : Type} (xs : List α) : Nat :=
+  match xs with
+  | .nil => 0
+  | .cons _x rest => 1 + length rest
+
+theorem length_cons {α : Type} (x : α) (xs : List α) : length (List.cons x xs)  = 1 + length xs := by
+  rfl
+
+theorem length_cons_gt {α : Type} (x : α) (xs : List α) : length xs < length (List.cons x xs) := by
+  rw [length_cons]
+  grind
+
+def lengthTR {α : Type} (xs : List α) : Nat :=
+    loop 0 xs
+  where
+    loop n ys := match ys with
+      | .nil => n
+      | .cons _x rest => loop (n+1) rest
+
+#guard lengthTR (List.nil : List Nat) == 0
+#guard lengthTR (List.cons 3 (List.nil) : List Nat) == 1
+
+theorem lengthTR_loop_succ {α : Type} : (n : Nat) → (xs : List α) → lengthTR.loop (n + 1) xs = 1 + lengthTR.loop n xs := by
+  intro n xs
+  cases xs
+  case nil =>
+    simp [lengthTR.loop]
+    rw [Nat.add_comm]
+  case cons x rest =>
+    unfold lengthTR.loop
+    have : MyList.length rest < MyList.length (List.cons x rest) := by apply length_cons_gt
+    rw [lengthTR_loop_succ (n+1) rest]
+
+theorem length_is_lengthTR {α : Type} (xs : List α) : length xs = lengthTR xs := by
+  induction xs
+  case nil =>
+    simp [length, lengthTR]
+    unfold lengthTR.loop
+    rfl
+  case cons x rest ih =>
+    simp [length, lengthTR]
+    unfold lengthTR.loop
+    rw [lengthTR_loop_succ 0]
+    unfold lengthTR at ih
+    rw [ih]
+
+
+def append {α : Type} (xs ys : List α) : List α :=
+  match xs with
+  | .nil => ys
+  | .cons x rest => .cons x (append rest ys)
+
+def reverse {α : Type} (xs : List α) : List α :=
+  match xs with
+  | .nil => .nil
+  | .cons x rest => append (reverse rest) (.cons x .nil)
+
+def reverseTR {α : Type} (xs : List α) : List α :=
+    loop .nil xs
+  where
+    loop ys zs :=
+      match zs with
+      | .nil => ys
+      | .cons z rest => loop (.cons z ys) rest
+
+
+
+end MyList
