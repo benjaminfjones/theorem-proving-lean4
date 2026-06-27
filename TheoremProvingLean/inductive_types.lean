@@ -1307,24 +1307,48 @@ def append {α : Type} (xs ys : List α) : List α :=
   | .nil => ys
   | .cons x rest => .cons x (append rest ys)
 
-theorem append_nil (xs : List α) : append List.nil xs = xs := by rfl
+@[simp] theorem nil_append (xs : List α) : append List.nil xs = xs := by rfl
 
-theorem append_cons (x : α) (rest ys : List α) : append (List.cons x rest) ys = List.cons x (append rest ys) := by rfl
+@[simp] theorem cons_append (x : α) (rest ys : List α) : append (List.cons x rest) ys = List.cons x (append rest ys) := by rfl
 
-theorem length_append (xs ys : List α) : length (append xs ys) = length xs + length ys := by
+@[simp] theorem append_nil (xs : List α) : append xs List.nil = xs := by
   cases xs with
-  | nil => rw [append_nil, length_nil, Nat.zero_add]
+  | nil => rw [nil_append]
   | cons x rest =>
-    rw [append_cons]
-    repeat rw [length_cons]
-    rw [length_append rest ys]
+    rw [cons_append]
+    rw [append_nil]  -- recursive rw
+
+@[simp] theorem length_append (xs ys : List α) : length (append xs ys) = length xs + length ys := by
+  cases xs with
+  | nil => rw [nil_append, length_nil, Nat.zero_add]
+  | cons x rest =>
+    simp only [cons_append, length_cons]
+    rw [length_append rest ys]  -- recursive rw
     show 1 + (length rest + length ys) = 1 + length rest + length ys
     grind
+
+theorem append_assoc (xs ys zs : List α) :
+    append (append xs ys) zs = append xs (append ys zs) := by
+  induction xs with
+  | nil => rfl
+  | cons x xs ih => simp [ih]
 
 def reverse {α : Type} (xs : List α) : List α :=
   match xs with
   | .nil => .nil
   | .cons x rest => append (reverse rest) (.cons x .nil)
+
+theorem reverse_nil : reverse (List.nil : List α) = List.nil := by rfl
+theorem reverse_cons (x : α) (xs : List α) : reverse (List.cons x xs) = append (reverse xs) (.cons x .nil) := by rfl
+
+theorem length_reverse (xs : List α) : length (reverse xs) = length xs := by
+  cases xs with
+  | nil => rw [reverse_nil, length_nil]
+  | cons x rest =>
+    simp only [reverse_cons, length_cons, length_nil, length_append]
+    rw [length_reverse rest]  -- recursive rw
+    show length rest + (1 + 0) = 1 + length rest
+    grind
 
 def reverseTR {α : Type} (xs : List α) : List α :=
     loop .nil xs
@@ -1334,6 +1358,31 @@ def reverseTR {α : Type} (xs : List α) : List α :=
       | .nil => ys
       | .cons z rest => loop (.cons z ys) rest
 
+theorem append_singleton (x : α) (xs : List α) : append (List.cons x List.nil) xs = List.cons x xs := by
+  rw [cons_append]
+  rw [nil_append]
 
+theorem reverse_append (xs ys : List α) : reverse (append xs ys) = append (reverse ys) (reverse xs) := by
+  cases xs with
+  | nil =>
+    simp only [nil_append, reverse_nil]
+    rw [append_nil]
+  | cons x rest =>
+    rw [cons_append]
+    repeat rw [reverse_cons]
+    rw [reverse_append rest ys]
+    rw [append_assoc]
+
+theorem reverse_reverse (xs : List α) : reverse (reverse xs) = xs := by
+  cases xs with
+  | nil => repeat rw [reverse_nil]
+  | cons x rest =>
+    rw [reverse_cons]
+    rw [reverse_append]
+    rw [reverse_cons]
+    rw [reverse_nil]
+    rw [nil_append]
+    rw [reverse_reverse rest]  -- recursive rw
+    rw [append_singleton]
 
 end MyList
