@@ -1386,3 +1386,33 @@ theorem reverse_reverse (xs : List α) : reverse (reverse xs) = xs := by
     rw [append_singleton]
 
 end MyList
+
+namespace Eval
+
+inductive Expr where
+  | const : (n : Nat) → Expr                -- a constant denoting the natural number n
+  | var   : (n : Nat) → Expr                -- a variable, numbered n
+  | plus  : (s : Expr) → (t : Expr) → Expr  -- denoting the sum of s and t
+  | times : (s : Expr) → (t : Expr) → Expr  -- denoting the product of s and t
+deriving Repr
+
+abbrev Env := (Nat → Nat)  -- mapping variable IDs to values
+
+def eval (e : Expr) (env : Env) : Nat :=
+  match e with
+  | .const n => n
+  | .var n => env n
+  | .plus s t => (eval s env) + (eval t env)
+  | .times s t => (eval s env) * (eval t env) 
+
+-- (1 |-> 1) (0 |-> 2) empty
+def env0 : Env := fun n => if n == 0 then 2 else (if n == 1 then 1 else 0)
+
+open Expr
+
+#guard eval (plus (const 1) (const 2)) env0 == 3
+#guard eval (plus (var 0) (const 2)) env0 == 4
+#guard eval (plus (var 1) (const 2)) env0 == 3
+#guard eval (times (var 1) (const 2)) env0 == 2
+
+end Eval
