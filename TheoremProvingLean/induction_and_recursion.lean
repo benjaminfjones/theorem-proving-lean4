@@ -80,4 +80,13 @@ theorem fuse_eq (env : Env)
   | .times s t =>
     grind [eval, simpConst, simpConst_eq]
 
+-- alternate proof
+theorem fuse_eq' (v : Nat → Nat) : ∀ e : Expr, eval v (fuse e) = eval v e
+  | const n     => rfl
+  | var n       => rfl
+  | plus e₁ e₂  => by
+    rw [fuse, simpConst_eq, eval, eval, simpConst_eq, simpConst_eq]
+  | times e₁ e₂ => by
+    rw [fuse, simpConst_eq, eval, eval, simpConst_eq, simpConst_eq]
+
 end Eval
